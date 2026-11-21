@@ -2234,15 +2234,15 @@
         }
         if (info.cleanHours > 0) {
           badges.push(
-            `<div class="mt-1 px-1 py-0.5 rounded bg-white border border-pink-400 text-[9px] sm:text-[10px] font-black text-slate-950 leading-tight">
-              🧹 ${info.entry.clean.start}–${info.entry.clean.end}
+            `<div class="mt-1 py-1 px-1.5 rounded-lg bg-amber-100 border-2 border-amber-400 text-[10px] sm:text-[11px] font-black text-amber-950 leading-tight">
+              🧹 Limp: ${info.entry.clean.start}–${info.entry.clean.end} (${formatHoursES(info.cleanHours)})
             </div>`
           );
         }
         if (info.walkHours > 0) {
           badges.push(
-            `<div class="mt-1 px-1 py-0.5 rounded bg-pink-600 text-white text-[9px] sm:text-[10px] font-black leading-tight">
-              🚶♀️ ${info.entry.walk.start}–${info.entry.walk.end}
+            `<div class="mt-1 py-1 px-1.5 rounded-lg bg-blue-600 text-white text-[10px] sm:text-[11px] font-black leading-tight shadow-2xs">
+              🚶♀️ Paseo: ${info.entry.walk.start}–${info.entry.walk.end} (${formatHoursES(info.walkHours)})
             </div>`
           );
         }
@@ -2362,26 +2362,43 @@
           const miniTags = [];
           if (inCurrentMonth) {
             if (info.cleanHours > 0) {
-              miniTags.push(`<div class="mt-0.5 px-1 rounded bg-white border border-pink-300 text-[8px] sm:text-[9px] font-black text-slate-900 truncate">🧹 ${formatHoursES(info.cleanHours)}</div>`);
+              miniTags.push(`<div class="mt-0.5 py-0.5 px-1 rounded-md bg-amber-100 border border-amber-400 text-amber-950 text-[10px] sm:text-[11px] font-black truncate flex items-center justify-center gap-1 shadow-2xs"><span>🧹</span><span>${formatHoursES(info.cleanHours)}</span></div>`);
             }
             if (info.walkHours > 0) {
-              miniTags.push(`<div class="mt-0.5 px-1 rounded bg-pink-600 text-white text-[8px] sm:text-[9px] font-black truncate">🚶♀️ ${formatHoursES(info.walkHours)}</div>`);
+              miniTags.push(`<div class="mt-0.5 py-0.5 px-1 rounded-md bg-blue-600 text-white text-[10px] sm:text-[11px] font-black truncate flex items-center justify-center gap-1 shadow-2xs"><span>🚶♀️</span><span>${formatHoursES(info.walkHours)}</span></div>`);
             }
             if (info.holidayName) {
-              miniTags.push(`<div class="mt-0.5 px-1 rounded bg-amber-200 text-slate-950 text-[8px] font-black truncate">Festivo</div>`);
+              miniTags.push(`<div class="mt-0.5 py-0.5 px-1 rounded-md bg-purple-100 border border-purple-400 text-purple-950 text-[10px] font-black truncate text-center">🏛️ Festivo</div>`);
             }
+          }
+
+          const hasMultipleServices = (info.cleanHours > 0 && info.walkHours > 0);
+          const topHoursBadge = (inCurrentMonth && hasMultipleServices)
+            ? `<span class="text-[10px] font-black px-1.5 py-0.2 rounded-md bg-slate-900 text-white leading-tight">${formatHoursES(info.totalHours)}</span>`
+            : '';
+
+          // Selección clara con borde azul vibrante y fondo limpio
+          let activeBorderClass = '';
+          if (isSelected) {
+            cellBg = 'bg-blue-50/90 ring-2 ring-blue-600 shadow-sm';
+            activeBorderClass = 'text-blue-800';
+          } else if (inCurrentMonth && info.hasService) {
+            cellBg = 'bg-slate-50/70 hover:bg-slate-100/80';
+            activeBorderClass = 'text-slate-950';
+          } else {
+            activeBorderClass = 'text-slate-950';
           }
 
           cells.push(
             `<div
               onclick="selectDay('${ds}')"
-              class="workweek-cell ${cellBg} p-1 sm:p-1.5 min-h-[76px] sm:min-h-[92px] cursor-pointer transition flex flex-col justify-between"
+              class="workweek-cell ${cellBg} p-1.5 min-h-[82px] sm:min-h-[96px] cursor-pointer transition flex flex-col justify-between rounded-lg"
             >
-              <div class="flex items-center justify-between">
-                <span class="text-[11px] sm:text-xs font-black ${isSelected ? 'text-pink-800' : 'text-slate-950'}">${dObj.getDate()}</span>
-                ${inCurrentMonth && info.totalHours > 0 ? `<span class="text-[9px] font-black text-pink-900">${formatHoursES(info.totalHours)}</span>` : ''}
+              <div class="flex items-center justify-between border-b border-slate-200/60 pb-0.5">
+                <span class="text-sm sm:text-base font-black ${activeBorderClass}">${dObj.getDate()}</span>
+                ${topHoursBadge}
               </div>
-              <div>${miniTags.join('')}</div>
+              <div class="space-y-1 mt-1">${miniTags.join('')}</div>
             </div>`
           );
         }
