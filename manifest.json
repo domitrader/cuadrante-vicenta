@@ -1,0 +1,24 @@
+{
+  "name": "Cuadrante Vicenta · Mataró",
+  "short_name": "Vicenta",
+  "description": "Cuadrante diario y mensual de servicio de limpieza y paseo para Vicenta Serrano Machín en Mataró",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#0f172a",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "./icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

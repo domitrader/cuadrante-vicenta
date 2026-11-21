@@ -1,0 +1,8 @@
+# Archivos de sistema y temporales
+.gemini/
+upload/
+Screenshot_*.jpg
+logo_base64.txt
+node_modules/
+.DS_Store
+*.log

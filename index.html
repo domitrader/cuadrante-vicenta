@@ -1,0 +1,2623 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- PWA, WhatsApp y Redes Sociales con Retrato Real de Vicenta -->
+  <link rel="manifest" href="./manifest.json" />
+  <link rel="icon" type="image/png" href="./favicon.png" />
+  <link rel="apple-touch-icon" href="./icon-192.png" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Vicenta" />
+
+  <!-- Metadatos para compartir por WhatsApp / Mensajería -->
+  <meta property="og:title" content="Cuadrante de Servicio y Paseo · Vicenta (Mataró)" />
+  <meta property="og:description" content="Avisos diarios con voz, horarios de limpieza y paseos para Vicenta Serrano Machín en Mataró. Coordinado por Domingo Martínez Serrano." />
+  <meta property="og:image" content="./og-image.jpg" />
+  <meta property="og:image:type" content="image/jpeg" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:image" content="./og-image.jpg" />
+  <title>Cuadrante Servicio y Paseo — Vicenta Serrano Machín · Mataró (2026–2027)</title>
+  <meta name="description" content="Cuadrante de limpieza y paseo para Vicenta Serrano Machín en Mataró (Cataluña), años naturales 2026 y 2027, gestionado por Domingo Martínez Serrano." />
+  <meta name="theme-color" content="#0f172a" />
+  <link id="dynamicFavicon" rel="icon" href="https://placehold.co/64x64/fce7f3/831843?text=V" />
+  <link id="dynamicAppleIcon" rel="apple-touch-icon" href="https://placehold.co/180x180/fce7f3/831843?text=Vicenta" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    /* Tipografía base y prevención de desbordamiento horizontal en móviles */
+    html, body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      overflow-x: hidden;
+      background-color: #f8fafc;
+      color: #0f172a;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* Resaltado en fondo rosa de alto contraste para días con servicio o seleccionados */
+    .pink-active-surface {
+      background-color: #fce7f3 !important;
+      border-color: #db2777 !important;
+      box-shadow: 0 0 0 2px #f472b6;
+    }
+
+    .pink-selected-cell {
+      background-color: #fdf2f8 !important;
+      border-color: #db2777 !important;
+      box-shadow: inset 0 0 0 2px #db2777;
+    }
+
+    /* Emblema circular del logo con el retrato de Vicenta */
+    .vicenta-logo-ring {
+      border: 3px solid #f472b6;
+      box-shadow: 0 0 0 2px #831843;
+      background-color: #fce7f3;
+      object-fit: cover;
+      object-position: center 22%;
+    }
+
+    /* Ruletillas compactas tipo iPhone (altura estricta de 66px = 3 filas de 22px) */
+    .wheel-container {
+      position: relative;
+      height: 66px;
+      width: 58px;
+      background: linear-gradient(180deg, #e2e8f0 0%, #ffffff 34%, #ffffff 66%, #cbd5e1 100%);
+      border: 2px solid #0f172a;
+      border-radius: 12px;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    .wheel-container.wheel-month {
+      width: 68px;
+    }
+
+    .wheel-container.wheel-year {
+      width: 66px;
+    }
+
+    .wheel-highlight-band {
+      position: absolute;
+      left: 2px;
+      right: 2px;
+      top: 22px;
+      height: 22px;
+      background: rgba(219, 39, 119, 0.18);
+      border-top: 2px solid #db2777;
+      border-bottom: 2px solid #db2777;
+      border-radius: 6px;
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    .wheel-scroll {
+      position: relative;
+      z-index: 1;
+      height: 66px !important;
+      max-height: 66px !important;
+      overflow-y: auto !important;
+      overflow-x: hidden !important;
+      scroll-snap-type: y mandatory;
+      scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
+      padding-top: 22px;
+      padding-bottom: 22px;
+    }
+
+    .wheel-scroll::-webkit-scrollbar {
+      display: none;
+    }
+
+    .wheel-item {
+      height: 22px;
+      line-height: 22px;
+      text-align: center;
+      font-size: 12px;
+      font-weight: 800;
+      color: #475569;
+      scroll-snap-align: center;
+      cursor: pointer;
+      white-space: nowrap;
+      padding: 0 2px;
+    }
+
+    .wheel-item.active {
+      color: #831843;
+      font-weight: 900;
+      font-size: 13px;
+    }
+
+    /* Cuadrícula estricta de 5 columnas (Lunes a Viernes) con líneas marcadas */
+    .workweek-grid-5 {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      width: 100%;
+      border-top: 2px solid #0f172a;
+      border-left: 2px solid #0f172a;
+    }
+
+    .workweek-cell {
+      border-right: 2px solid #0f172a;
+      border-bottom: 2px solid #0f172a;
+      min-width: 0;
+    }
+
+    /* Estilos de impresión limpios */
+    @media print {
+      .no-print {
+        display: none !important;
+      }
+      body {
+        background: #ffffff !important;
+        padding-bottom: 0 !important;
+      }
+    }
+  </style>
+</head>
+<body class="min-h-screen pb-24">
+
+  <!-- =====================================================================
+       PORTADA GIGANTE A PRIMERA PLANA CADA DÍA AL ABRIR ("HOY" Y "MAÑANA")
+       ===================================================================== -->
+  <section
+    id="fullScreenDayAlert"
+    aria-live="polite"
+    class="fixed inset-0 z-40 bg-slate-950/95 overflow-y-auto p-3 sm:p-6 flex items-center justify-center no-print"
+  >
+    <div
+      id="fpMainCard"
+      class="w-full max-w-2xl rounded-3xl border-4 border-slate-900 bg-white p-4 sm:p-6 shadow-2xl transition-colors"
+    >
+      <!-- Cabecera con retrato de Vicenta, fecha y botón grande ✕ SALIR -->
+      <div class="flex items-start justify-between gap-3 mb-4">
+        <div class="flex items-center gap-3 min-w-0">
+          <img
+            id="splashVicentaLogo"
+            src="65721.jpg"
+            alt="Retrato de Vicenta Serrano Machín"
+            onerror="handlePortraitError(this)"
+            class="w-16 h-16 sm:w-20 sm:h-20 rounded-full vicenta-logo-ring shrink-0"
+          />
+          <div class="min-w-0">
+            <span class="inline-block px-3 py-1 rounded-full bg-pink-600 text-white text-xs sm:text-sm font-black uppercase tracking-wider">
+              Aviso del Día · Mataró
+            </span>
+            <h1 id="fpDateTitle" class="text-xl sm:text-3xl font-black text-slate-950 mt-1 leading-tight">
+              Sábado, 21 de Noviembre de 2026
+            </h1>
+            <p class="text-xs sm:text-sm font-bold text-slate-700 mt-0.5 truncate">
+              Vicenta Serrano Machín · 92 años · Mataró (Cataluña)
+            </p>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          onclick="dismissFullScreenAlert()"
+          aria-label="Cerrar aviso y ver cuadrante"
+          class="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-red-600 hover:bg-red-700 active:scale-95 text-white font-black text-2xl sm:text-3xl flex items-center justify-center shadow-lg shrink-0 cursor-pointer"
+        >
+          ✕
+        </button>
+      </div>
+
+      <!-- Bloque principal de HOY -->
+      <div
+        id="fpTodayBox"
+        class="rounded-2xl border-3 border-slate-900 bg-slate-50 p-4 sm:p-5 mb-4"
+      >
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+          <span class="text-xs sm:text-sm font-black uppercase tracking-wider text-slate-700">
+            HOY — SERVICIOS Y HORARIOS
+          </span>
+          <span
+            id="fpTotalHoursBadge"
+            class="px-3.5 py-1.5 rounded-xl bg-slate-950 text-white text-sm sm:text-base font-black"
+          >
+            TOTAL HOY: 0,0 h
+          </span>
+        </div>
+
+        <p id="fpHeadline" class="text-2xl sm:text-4xl font-black text-slate-950 leading-snug mb-3">
+          Hoy no viene nadie programado
+        </p>
+
+        <div id="fpScheduleDetails" class="space-y-2 text-base sm:text-xl font-extrabold text-slate-900">
+          <!-- Detalles dinámicos de limpieza, paseo o festivo -->
+        </div>
+      </div>
+
+      <!-- Resumen de MAÑANA -->
+      <div
+        id="fpTomorrowBox"
+        class="rounded-2xl border-2 border-slate-800 bg-slate-100 p-3.5 sm:p-4 mb-4"
+      >
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-1">
+          <span class="text-xs sm:text-sm font-black uppercase tracking-wider text-slate-700">
+            MAÑANA — ADELANTO
+          </span>
+          <span id="fpTomorrowHours" class="text-xs sm:text-sm font-black text-slate-900">
+            0,0 h
+          </span>
+        </div>
+        <p id="fpTomorrowSummary" class="text-base sm:text-lg font-extrabold text-slate-900">
+          Mañana domingo: descanso sin servicio programado.
+        </p>
+      </div>
+
+      <!-- Cartel visual de lectura por voz (útil si el visor bloquea audio) -->
+      <div
+        id="fpSpeechFallbackBox"
+        class="hidden rounded-2xl border-2 border-pink-500 bg-pink-50 p-3.5 mb-4"
+      >
+        <div class="flex items-center justify-between gap-2 mb-1">
+          <span class="text-xs font-black uppercase tracking-wider text-pink-900">
+            Texto leído en voz alta
+          </span>
+          <button
+            type="button"
+            onclick="stopSpeechReading()"
+            class="px-2.5 py-1 rounded-lg bg-pink-900 text-white text-xs font-black cursor-pointer"
+          >
+            Detener
+          </button>
+        </div>
+        <p id="fpSpeechText" class="text-sm sm:text-base font-extrabold text-pink-950 leading-relaxed"></p>
+      </div>
+
+      <!-- Botones principales: Escuchar en voz alta y Salir al cuadrante -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <button
+          type="button"
+          onclick="speakCurrentDayAlert()"
+          class="w-full py-3.5 px-4 rounded-2xl bg-pink-600 hover:bg-pink-700 active:scale-[0.99] text-white font-black text-base sm:text-lg shadow-md flex items-center justify-center gap-2 cursor-pointer"
+        >
+          <span>🔊 ESCUCHAR AVISO DE HOY</span>
+        </button>
+
+        <button
+          type="button"
+          onclick="dismissFullScreenAlert()"
+          class="w-full py-3.5 px-4 rounded-2xl bg-slate-950 hover:bg-slate-800 active:scale-[0.99] text-white font-black text-base sm:text-lg shadow-md flex items-center justify-center gap-2 cursor-pointer"
+        >
+          <span>✕ SALIR AL CUADRANTE</span>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- =====================================================================
+       APLICACIÓN PRINCIPAL: CABECERA COMPACTA, RULETILLAS Y CUADRANTE L-V
+       ===================================================================== -->
+  <div id="mainAppShell" class="max-w-4xl mx-auto px-2.5 sm:px-4 pt-2 sm:pt-3 space-y-3">
+
+    <!-- Cabecera superior compacta: Izquierda = Logo + Acciones | Derecha = Ruletillas (66px) -->
+    <header class="rounded-2xl bg-slate-950 text-white p-2.5 sm:p-3.5 shadow-lg border-2 border-slate-800 pt-11 sm:pt-3.5 no-print">
+      <div class="flex items-start justify-between gap-2">
+        <!-- Columna izquierda: Logo de Vicenta y botones compactos -->
+        <div class="flex flex-col gap-1.5 min-w-0">
+          <div class="flex items-center gap-2">
+            <img
+              id="headerVicentaLogo"
+              src="65721.jpg"
+              alt="Logo Vicenta"
+              onerror="handlePortraitError(this)"
+              onclick="openLogoSettingsModal()"
+              title="Logo de Vicenta · Tocar para ajustar retrato"
+              class="w-11 h-11 rounded-full vicenta-logo-ring shrink-0 cursor-pointer"
+            />
+            <div class="flex flex-col gap-1">
+              <button
+                type="button"
+                onclick="openFullScreenAlert()"
+                class="px-2.5 py-1 rounded-lg bg-pink-600 hover:bg-pink-500 text-white text-[11px] font-black cursor-pointer text-left"
+              >
+                Aviso Hoy
+              </button>
+              <a
+                href="tel:665784402"
+                class="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-black cursor-pointer text-left"
+              >
+                Domingo · 665 78 44 02
+              </a>
+            </div>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-1.5">
+            <button
+              type="button"
+              onclick="openCoordinationModal()"
+              class="px-2.5 py-1 rounded-lg bg-amber-400 hover:bg-amber-300 text-slate-950 text-[11px] font-black cursor-pointer"
+            >
+              Teléfonos
+            </button>
+            <button
+              type="button"
+              onclick="openLogoSettingsModal()"
+              class="px-2.5 py-1 rounded-lg bg-pink-900 hover:bg-pink-800 text-pink-100 text-[11px] font-black cursor-pointer"
+            >
+              Logo
+            </button>
+            <button
+              id="btnTopPinLock"
+              type="button"
+              onclick="handlePinButtonClick()"
+              class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-white text-[11px] font-black cursor-pointer"
+            >
+              PIN
+            </button>
+          </div>
+        </div>
+
+        <!-- Columna derecha: Ruletillas compactas tipo iPhone (Día · Mes · Año) + Hoy -->
+        <div class="flex flex-col items-end shrink-0">
+          <div class="flex items-center justify-between w-full gap-1.5 mb-1">
+            <span class="text-[10px] font-black uppercase tracking-wider text-pink-300">
+              Fecha
+            </span>
+            <button
+              type="button"
+              onclick="goToToday()"
+              class="px-2 py-0.5 rounded-md bg-pink-600 hover:bg-pink-500 text-white text-[10px] font-black cursor-pointer"
+            >
+              Hoy
+            </button>
+          </div>
+
+          <div class="flex items-center gap-1">
+            <!-- Ruleta Día -->
+            <div class="flex flex-col items-center">
+              <span class="text-[9px] font-bold text-slate-400 mb-0.5">DÍA</span>
+              <div class="wheel-container" aria-label="Selector de día">
+                <div class="wheel-highlight-band"></div>
+                <div id="wheelDay" class="wheel-scroll" onscroll="handleWheelScroll('day')"></div>
+              </div>
+            </div>
+
+            <!-- Ruleta Mes -->
+            <div class="flex flex-col items-center">
+              <span class="text-[9px] font-bold text-slate-400 mb-0.5">MES</span>
+              <div class="wheel-container wheel-month" aria-label="Selector de mes">
+                <div class="wheel-highlight-band"></div>
+                <div id="wheelMonth" class="wheel-scroll" onscroll="handleWheelScroll('month')"></div>
+              </div>
+            </div>
+
+            <!-- Ruleta Año -->
+            <div class="flex flex-col items-center">
+              <span class="text-[9px] font-bold text-slate-400 mb-0.5">AÑO</span>
+              <div class="wheel-container wheel-year" aria-label="Selector de año">
+                <div class="wheel-highlight-band"></div>
+                <div id="wheelYear" class="wheel-scroll" onscroll="handleWheelScroll('year')"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Franja de estado de bloqueo / edición -->
+      <div id="modeStatusStrip" class="mt-2.5 pt-2 border-t border-slate-800 flex flex-wrap items-center justify-between gap-2 text-[11px]">
+        <span id="lockStatusBadge" class="px-2 py-0.5 rounded-md bg-slate-800 text-amber-300 font-black">
+          🔒 SOLO LECTURA (ANTI-TOQUES ACTIVADO · PIN: 1234 / 4402)
+        </span>
+        <span class="font-bold text-slate-300">
+          Mataró · Topes: Paseo 468h/año (39h/mes) · Limpieza 72h/año (6h/mes)
+        </span>
+      </div>
+
+      <!-- Barra de administración visible solo cuando está desbloqueado con PIN -->
+      <div id="adminToolbar" class="hidden mt-2.5 pt-2.5 border-t border-pink-800 flex flex-wrap items-center gap-1.5">
+        <button
+          type="button"
+          onclick="openDayEditModal(state.selectedDateStr)"
+          class="px-2.5 py-1.5 rounded-lg bg-pink-600 hover:bg-pink-500 text-white text-xs font-black cursor-pointer"
+        >
+          ✏️ Editar día seleccionado
+        </button>
+        <button
+          type="button"
+          onclick="autoBalanceActiveMonth()"
+          class="px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black cursor-pointer"
+        >
+          ⚖️ Cuadrar mes (39h/6h)
+        </button>
+        <button
+          type="button"
+          onclick="autoBalanceActiveYear()"
+          class="px-2.5 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-black cursor-pointer"
+        >
+          📅 Cuadrar año (468h/72h)
+        </button>
+        <button
+          type="button"
+          onclick="exportCalendarICS('month')"
+          class="px-2.5 py-1.5 rounded-lg bg-sky-600 hover:bg-sky-500 text-white text-xs font-black cursor-pointer"
+        >
+          📥 .ICS Mes
+        </button>
+        <button
+          type="button"
+          onclick="exportCalendarICS('year')"
+          class="px-2.5 py-1.5 rounded-lg bg-sky-800 hover:bg-sky-700 text-white text-xs font-black cursor-pointer"
+        >
+          📥 .ICS Año
+        </button>
+        <button
+          type="button"
+          onclick="resetActiveYearToDefault()"
+          class="px-2.5 py-1.5 rounded-lg bg-red-700 hover:bg-red-600 text-white text-xs font-black cursor-pointer"
+        >
+          ↺ Restaurar año
+        </button>
+      </div>
+    </header>
+
+    <!-- =====================================================================
+         FICHA SUPERIOR ROSA DEL DÍA SELECCIONADO (JUSTO DEBAJO DE CABECERA)
+         ===================================================================== -->
+    <section
+      id="selectedDayTopCard"
+      class="rounded-2xl border-3 border-slate-900 bg-white p-3 sm:p-4 shadow-sm transition-colors"
+    >
+      <div class="flex flex-wrap items-start justify-between gap-2">
+        <div>
+          <div class="flex flex-wrap items-center gap-1.5">
+            <span id="selDayBadge" class="px-2.5 py-0.5 rounded-full bg-pink-600 text-white text-[11px] font-black uppercase">
+              DÍA SELECCIONADO
+            </span>
+            <span id="selDayHolidayBadge" class="hidden px-2.5 py-0.5 rounded-full bg-amber-300 text-slate-950 text-[11px] font-black">
+              FESTIVO MATARÓ
+            </span>
+          </div>
+          <h2 id="selDayTitle" class="text-lg sm:text-2xl font-black text-slate-950 mt-1">
+            Lunes, 23 de Noviembre de 2026
+          </h2>
+        </div>
+
+        <div class="flex items-center gap-1.5">
+          <span id="selDayHoursPill" class="px-3 py-1 rounded-xl bg-slate-950 text-white text-xs sm:text-sm font-black">
+            0,0 h
+          </span>
+          <button
+            type="button"
+            onclick="speakDateAlert(state.selectedDateStr)"
+            class="px-2.5 py-1 rounded-xl bg-pink-600 hover:bg-pink-700 text-white text-xs font-black cursor-pointer no-print"
+          >
+            🔊 Voz
+          </button>
+          <button
+            id="btnTopCardEdit"
+            type="button"
+            onclick="openDayEditModal(state.selectedDateStr)"
+            class="hidden px-2.5 py-1 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-black cursor-pointer no-print"
+          >
+            ✏️ Horas
+          </button>
+        </div>
+      </div>
+
+      <div id="selDayScheduleList" class="mt-2.5 space-y-1.5 text-sm sm:text-base font-extrabold text-slate-900">
+        <!-- Se rellena dinámicamente -->
+      </div>
+    </section>
+
+    <!-- =====================================================================
+         RESUMEN COMPACTO DE HORAS Y CUADRE (MES Y AÑO NATURAL INDEPENDIENTE)
+         ===================================================================== -->
+    <section
+      id="quotaSummaryCard"
+      class="rounded-2xl border-2 border-slate-900 bg-emerald-50 p-3 shadow-sm"
+    >
+      <div class="flex flex-wrap items-center justify-between gap-2">
+        <div>
+          <span id="quotaMonthLabel" class="text-[11px] font-black uppercase tracking-wider text-emerald-950">
+            NOVIEMBRE 2026 · CUADRE MENSUAL
+          </span>
+          <p id="quotaMonthStatus" class="text-sm sm:text-base font-black text-emerald-950">
+            MES CUADRADO · Paseo 39,0h / 39,0h · Limpieza 6,0h / 6,0h
+          </p>
+        </div>
+        <span id="quotaSurplusBadge" class="px-2.5 py-1 rounded-lg bg-emerald-900 text-white text-xs font-black">
+          Sobrante mes: 0,0 h
+        </span>
+      </div>
+
+      <p id="quotaYearSummary" class="mt-1.5 text-xs font-extrabold text-slate-800">
+        Cierre Año 2026: Paseo 468,0h / 468,0h · Limpieza 72,0h / 72,0h
+      </p>
+    </section>
+
+    <!-- =====================================================================
+         CONTENEDOR DE VISTAS: DÍA · SEMANA (L-V 5 COL) · MES (L-V 5 COL) · AÑO
+         ===================================================================== -->
+    <main id="viewsContainer" class="space-y-3">
+
+      <!-- VISTA DÍA -->
+      <section id="viewDay" class="hidden rounded-2xl border-2 border-slate-900 bg-white p-3.5 sm:p-4 shadow-sm space-y-3">
+        <div class="flex items-center justify-between gap-2">
+          <button
+            type="button"
+            onclick="stepDay(-1)"
+            class="px-3 py-2 rounded-xl bg-slate-950 hover:bg-slate-800 text-white text-xs sm:text-sm font-black cursor-pointer"
+          >
+            ‹ Día ant.
+          </button>
+          <div class="text-center">
+            <span class="text-[10px] font-black uppercase tracking-wider text-slate-500">Vista de Día</span>
+            <h3 id="dayViewHeading" class="text-base sm:text-lg font-black text-slate-950"></h3>
+          </div>
+          <button
+            type="button"
+            onclick="stepDay(1)"
+            class="px-3 py-2 rounded-xl bg-slate-950 hover:bg-slate-800 text-white text-xs sm:text-sm font-black cursor-pointer"
+          >
+            Día sig. ›
+          </button>
+        </div>
+
+        <div id="dayViewBody" class="space-y-2.5">
+          <!-- Detalle amplio del día seleccionado -->
+        </div>
+      </section>
+
+      <!-- VISTA SEMANA (LUNES A VIERNES · 5 COLUMNAS ENCAJADAS AL ANCHO DEL MÓVIL) -->
+      <section id="viewWeek" class="rounded-2xl border-2 border-slate-900 bg-white p-2.5 sm:p-4 shadow-sm space-y-3">
+        <div class="flex items-center justify-between gap-2">
+          <button
+            type="button"
+            onclick="stepWeek(-1)"
+            class="px-2.5 sm:px-3.5 py-2 rounded-xl bg-slate-950 hover:bg-slate-800 text-white text-xs font-black cursor-pointer shrink-0"
+          >
+            ‹ Sem. ant.
+          </button>
+
+          <div class="text-center min-w-0">
+            <span class="text-[10px] font-black uppercase tracking-wider text-pink-700">
+              Semana Lunes a Viernes (5 días)
+            </span>
+            <h3 id="weekRangeTitle" class="text-xs sm:text-base font-black text-slate-950 truncate">
+              16 Nov – 20 Nov 2026
+            </h3>
+            <p id="weekHoursSummary" class="text-[11px] font-extrabold text-slate-700">
+              Total L–V: 0,0 h
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onclick="stepWeek(1)"
+            class="px-2.5 sm:px-3.5 py-2 rounded-xl bg-slate-950 hover:bg-slate-800 text-white text-xs font-black cursor-pointer shrink-0"
+          >
+            Sem. sig. ›
+          </button>
+        </div>
+
+        <!-- Cabecera de 5 columnas L-V -->
+        <div class="workweek-grid-5 bg-slate-950 text-white rounded-t-xl overflow-hidden">
+          <div class="workweek-cell py-2 text-center text-[11px] sm:text-xs font-black">LUN</div>
+          <div class="workweek-cell py-2 text-center text-[11px] sm:text-xs font-black">MAR</div>
+          <div class="workweek-cell py-2 text-center text-[11px] sm:text-xs font-black">MIÉ</div>
+          <div class="workweek-cell py-2 text-center text-[11px] sm:text-xs font-black">JUE</div>
+          <div class="workweek-cell py-2 text-center text-[11px] sm:text-xs font-black">VIE</div>
+        </div>
+
+        <!-- Celdas semanales L-V -->
+        <div id="weekGridBody" class="workweek-grid-5 bg-white">
+          <!-- Renderizado en JS -->
+        </div>
+
+        <p class="text-[11px] font-bold text-slate-600 text-center">
+          Toca cualquier día de Lunes a Viernes para resaltarlo en rosa arriba y ver su detalle. (Sábados y domingos sin servicio ordinario).
+        </p>
+      </section>
+
+      <!-- VISTA MES (LUNES A VIERNES · 5 COLUMNAS ENCAJADAS AL ANCHO DEL MÓVIL) -->
+      <section id="viewMonth" class="hidden rounded-2xl border-2 border-slate-900 bg-white p-2.5 sm:p-4 shadow-sm space-y-3">
+        <div class="flex items-center justify-between gap-2">
+          <button
+            type="button"
+            onclick="stepMonth(-1)"
+            class="px-2.5 sm:px-3.5 py-2 rounded-xl bg-slate-950 hover:bg-slate-800 text-white text-xs font-black cursor-pointer shrink-0"
+          >
+            ‹ Mes ant.
+          </button>
+
+          <div class="text-center min-w-0">
+            <span class="text-[10px] font-black uppercase tracking-wider text-pink-700">
+              Calendario Mensual Lunes a Viernes
+            </span>
+            <h3 id="monthViewTitle" class="text-sm sm:text-lg font-black text-slate-950">
+              Noviembre 2026
+            </h3>
+          </div>
+
+          <button
+            type="button"
+            onclick="stepMonth(1)"
+            class="px-2.5 sm:px-3.5 py-2 rounded-xl bg-slate-950 hover:bg-slate-800 text-white text-xs font-black cursor-pointer shrink-0"
+          >
+            Mes sig. ›
+          </button>
+        </div>
+
+        <!-- Cabecera de 5 columnas L-V -->
+        <div class="workweek-grid-5 bg-slate-950 text-white rounded-t-xl overflow-hidden">
+          <div class="workweek-cell py-2 text-center text-[11px] sm:text-xs font-black">LUN</div>
+          <div class="workweek-cell py-2 text-center text-[11px] sm:text-xs font-black">MAR</div>
+          <div class="workweek-cell py-2 text-center text-[11px] sm:text-xs font-black">MIÉ</div>
+          <div class="workweek-cell py-2 text-center text-[11px] sm:text-xs font-black">JUE</div>
+          <div class="workweek-cell py-2 text-center text-[11px] sm:text-xs font-black">VIE</div>
+        </div>
+
+        <!-- Celdas mensuales L-V -->
+        <div id="monthGridBody" class="workweek-grid-5 bg-white">
+          <!-- Renderizado en JS -->
+        </div>
+      </section>
+
+      <!-- VISTA AÑO (AÑOS NATURALES INDEPENDIENTES 2026 Y 2027) -->
+      <section id="viewYear" class="hidden rounded-2xl border-2 border-slate-900 bg-white p-3 sm:p-4 shadow-sm space-y-3">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <span class="text-[10px] font-black uppercase tracking-wider text-pink-700">
+              Años Naturales Independientes (Enero – Diciembre)
+            </span>
+            <h3 id="yearViewTitle" class="text-lg sm:text-xl font-black text-slate-950">
+              Año Natural 2026
+            </h3>
+          </div>
+
+          <div class="flex items-center gap-1.5">
+            <button
+              id="btnSelectYear2026"
+              type="button"
+              onclick="selectYear(2026)"
+              class="px-3 py-1.5 rounded-xl bg-slate-950 text-white text-xs font-black cursor-pointer"
+            >
+              2026
+            </button>
+            <button
+              id="btnSelectYear2027"
+              type="button"
+              onclick="selectYear(2027)"
+              class="px-3 py-1.5 rounded-xl bg-slate-200 text-slate-900 text-xs font-black cursor-pointer"
+            >
+              2027
+            </button>
+          </div>
+        </div>
+
+        <div id="yearAnnualTotalsBox" class="rounded-xl border-2 border-slate-900 bg-slate-50 p-3 text-xs sm:text-sm font-extrabold text-slate-900">
+          <!-- Totales anuales de paseo (468h) y limpieza (72h) -->
+        </div>
+
+        <div id="yearMonthsGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5">
+          <!-- 12 meses del año seleccionado -->
+        </div>
+
+        <div id="yearHolidaysList" class="rounded-xl border-2 border-amber-400 bg-amber-50 p-3 text-xs font-bold text-slate-900">
+          <!-- Festivos oficiales de Mataró / Cataluña -->
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- =====================================================================
+       BARRA INFERIOR FIJA TIPO PÍLDORA: DÍA · SEMANA · MES · AÑO
+       ===================================================================== -->
+  <nav
+    aria-label="Navegación principal por periodos"
+    class="fixed bottom-2.5 left-1/2 -translate-x-1/2 z-30 w-[95%] max-w-md rounded-full bg-white/95 backdrop-blur border-3 border-slate-950 shadow-2xl p-1.5 no-print"
+  >
+    <div class="grid grid-cols-4 gap-1">
+      <button
+        id="navTabDay"
+        type="button"
+        onclick="setViewMode('day')"
+        class="py-2.5 px-2 rounded-full text-xs sm:text-sm font-black text-slate-800 hover:bg-slate-100 transition cursor-pointer"
+      >
+        Día
+      </button>
+      <button
+        id="navTabWeek"
+        type="button"
+        onclick="setViewMode('week')"
+        class="py-2.5 px-2 rounded-full text-xs sm:text-sm font-black bg-pink-600 text-white shadow transition cursor-pointer"
+      >
+        Semana
+      </button>
+      <button
+        id="navTabMonth"
+        type="button"
+        onclick="setViewMode('month')"
+        class="py-2.5 px-2 rounded-full text-xs sm:text-sm font-black text-slate-800 hover:bg-slate-100 transition cursor-pointer"
+      >
+        Mes
+      </button>
+      <button
+        id="navTabYear"
+        type="button"
+        onclick="setViewMode('year')"
+        class="py-2.5 px-2 rounded-full text-xs sm:text-sm font-black text-slate-800 hover:bg-slate-100 transition cursor-pointer"
+      >
+        Año
+      </button>
+    </div>
+  </nav>
+
+  <!-- =====================================================================
+       MODAL PIN DE SEGURIDAD (ANTI-TOQUES PARA VICENTA)
+       ===================================================================== -->
+  <div id="pinModal" class="hidden fixed inset-0 z-50 bg-black/75 flex items-center justify-center p-3 no-print">
+    <div class="bg-white rounded-3xl border-4 border-slate-950 shadow-2xl w-full max-w-sm overflow-hidden">
+      <div class="px-5 py-4 bg-slate-950 text-white flex items-center justify-between">
+        <div>
+          <span class="text-[10px] font-black uppercase tracking-wider text-pink-300">Protección de Ediciones</span>
+          <h2 class="text-lg font-black">Desbloquear Edición (Domingo)</h2>
+        </div>
+        <button type="button" onclick="closePinModal()" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-black text-sm cursor-pointer">✕</button>
+      </div>
+
+      <form onsubmit="submitPinUnlock(event)" class="p-5 space-y-4">
+        <p class="text-xs font-bold text-slate-700">
+          La aplicación inicia en <span class="font-black text-slate-950">Solo Lectura</span> para evitar cambios accidentales. Introduce tu PIN de administrador:
+        </p>
+        <input
+          id="pinInput"
+          type="password"
+          inputmode="numeric"
+          maxlength="8"
+          placeholder="PIN"
+          class="w-full px-4 py-3 rounded-2xl border-2 border-slate-900 text-center text-2xl font-black tracking-widest focus:outline-none focus:border-pink-600"
+          required
+        />
+        <p id="pinErrorMsg" class="hidden text-xs font-black text-red-600 text-center">
+          PIN incorrecto. Inténtalo de nuevo.
+        </p>
+        <button
+          type="submit"
+          class="w-full py-3 rounded-2xl bg-pink-600 hover:bg-pink-700 text-white font-black text-base cursor-pointer"
+        >
+          Desbloquear Edición
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- =====================================================================
+       MODAL EDITOR DE HORARIOS POR DÍA (TRAMOS DE 5 MINUTOS + CUADRE EN VIVO)
+       ===================================================================== -->
+  <div id="dayEditModal" class="hidden fixed inset-0 z-50 bg-black/75 flex items-center justify-center p-2.5 sm:p-4 overflow-y-auto no-print">
+    <div class="bg-white rounded-3xl border-4 border-slate-950 shadow-2xl w-full max-w-lg overflow-hidden my-auto">
+      <div class="px-5 py-3.5 bg-slate-950 text-white flex items-center justify-between">
+        <div>
+          <span class="text-[10px] font-black uppercase tracking-wider text-pink-300">Cuadre Manual · Tramos de 5 min</span>
+          <h2 id="editModalDateHeading" class="text-base sm:text-lg font-black">Editar día</h2>
+        </div>
+        <button type="button" onclick="closeDayEditModal()" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-black text-sm cursor-pointer">✕</button>
+      </div>
+
+      <div class="p-4 sm:p-5 space-y-4 max-h-[82vh] overflow-y-auto">
+        <!-- Bloque Limpieza -->
+        <div class="rounded-2xl border-2 border-slate-300 bg-slate-50 p-3.5 space-y-2.5">
+          <div class="flex items-center justify-between">
+            <label class="flex items-center gap-2 font-black text-sm text-slate-950 cursor-pointer">
+              <input id="editCleanEnabled" type="checkbox" onchange="updateEditModalPreview()" class="w-5 h-5 accent-pink-600" />
+              <span>🧹 Servicio de Limpieza</span>
+            </label>
+            <span id="editCleanHoursLabel" class="text-xs font-black text-slate-800">0,0 h</span>
+          </div>
+
+          <div class="flex flex-wrap gap-1.5">
+            <button type="button" onclick="applyQuickPreset('clean', true, '09:00', '10:30')" class="px-2.5 py-1 rounded-lg bg-white border border-slate-400 text-[11px] font-black cursor-pointer">09:00–10:30 (1,5h)</button>
+            <button type="button" onclick="applyQuickPreset('clean', true, '09:00', '11:00')" class="px-2.5 py-1 rounded-lg bg-white border border-slate-400 text-[11px] font-black cursor-pointer">09:00–11:00 (2,0h)</button>
+            <button type="button" onclick="applyQuickPreset('clean', true, '10:00', '11:30')" class="px-2.5 py-1 rounded-lg bg-white border border-slate-400 text-[11px] font-black cursor-pointer">10:00–11:30 (1,5h)</button>
+            <button type="button" onclick="applyQuickPreset('clean', false, '09:00', '10:30')" class="px-2.5 py-1 rounded-lg bg-red-100 text-red-900 text-[11px] font-black cursor-pointer">Sin limpieza</button>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="block text-[11px] font-black text-slate-700 mb-1">Inicio limpieza</label>
+              <select id="editCleanStart" onchange="updateEditModalPreview()" class="w-full px-2.5 py-2 rounded-xl border-2 border-slate-800 bg-white text-sm font-black"></select>
+            </div>
+            <div>
+              <label class="block text-[11px] font-black text-slate-700 mb-1">Fin limpieza</label>
+              <select id="editCleanEnd" onchange="updateEditModalPreview()" class="w-full px-2.5 py-2 rounded-xl border-2 border-slate-800 bg-white text-sm font-black"></select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bloque Paseo -->
+        <div class="rounded-2xl border-2 border-pink-300 bg-pink-50/60 p-3.5 space-y-2.5">
+          <div class="flex items-center justify-between">
+            <label class="flex items-center gap-2 font-black text-sm text-slate-950 cursor-pointer">
+              <input id="editWalkEnabled" type="checkbox" onchange="updateEditModalPreview()" class="w-5 h-5 accent-pink-600" />
+              <span>🚶♀️ Servicio de Paseo</span>
+            </label>
+            <span id="editWalkHoursLabel" class="text-xs font-black text-pink-900">0,0 h</span>
+          </div>
+
+          <div class="flex flex-wrap gap-1.5">
+            <button type="button" onclick="applyQuickPreset('walk', true, '15:40', '17:40')" class="px-2.5 py-1 rounded-lg bg-white border border-pink-400 text-[11px] font-black cursor-pointer">15:40–17:40 (2,0h)</button>
+            <button type="button" onclick="applyQuickPreset('walk', true, '15:40', '16:40')" class="px-2.5 py-1 rounded-lg bg-white border border-pink-400 text-[11px] font-black cursor-pointer">15:40–16:40 (1,0h)</button>
+            <button type="button" onclick="applyQuickPreset('walk', true, '16:00', '17:30')" class="px-2.5 py-1 rounded-lg bg-white border border-pink-400 text-[11px] font-black cursor-pointer">16:00–17:30 (1,5h)</button>
+            <button type="button" onclick="applyQuickPreset('walk', true, '16:00', '18:00')" class="px-2.5 py-1 rounded-lg bg-white border border-pink-400 text-[11px] font-black cursor-pointer">16:00–18:00 (2,0h)</button>
+            <button type="button" onclick="applyQuickPreset('walk', false, '15:40', '17:40')" class="px-2.5 py-1 rounded-lg bg-red-100 text-red-900 text-[11px] font-black cursor-pointer">Sin paseo</button>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="block text-[11px] font-black text-slate-700 mb-1">Inicio paseo</label>
+              <select id="editWalkStart" onchange="updateEditModalPreview()" class="w-full px-2.5 py-2 rounded-xl border-2 border-slate-800 bg-white text-sm font-black"></select>
+            </div>
+            <div>
+              <label class="block text-[11px] font-black text-slate-700 mb-1">Fin paseo</label>
+              <select id="editWalkEnd" onchange="updateEditModalPreview()" class="w-full px-2.5 py-2 rounded-xl border-2 border-slate-800 bg-white text-sm font-black"></select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Vista previa en tiempo real del cuadre mensual -->
+        <div id="editLiveBalanceBox" class="rounded-2xl border-2 border-slate-900 bg-emerald-50 p-3 text-xs font-extrabold text-slate-900">
+          <!-- Actualizado en vivo -->
+        </div>
+
+        <p id="editValidationError" class="hidden text-xs font-black text-red-600"></p>
+
+        <div class="flex items-center justify-end gap-2 pt-1">
+          <button
+            type="button"
+            onclick="closeDayEditModal()"
+            class="px-4 py-2.5 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-900 text-xs font-black cursor-pointer"
+          >
+            Cancelar
+          </button>
+          <button
+            type="button"
+            onclick="saveDayEditModal()"
+            class="px-5 py-2.5 rounded-xl bg-pink-600 hover:bg-pink-700 text-white text-xs font-black cursor-pointer"
+          >
+            Guardar cambios
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =====================================================================
+       MODAL LOGO DE VICENTA (RECORTE CIRCULAR Y SUBIDA DE FOTO LOCAL)
+       ===================================================================== -->
+  <div id="logoSettingsModal" class="hidden fixed inset-0 z-50 bg-black/75 flex items-center justify-center p-3 no-print">
+    <div class="bg-white rounded-3xl border-4 border-pink-600 shadow-2xl w-full max-w-md overflow-hidden">
+      <div class="px-5 py-4 bg-pink-950 text-white flex items-center justify-between">
+        <div>
+          <span class="text-[10px] font-black uppercase tracking-wider text-pink-300">Identidad Visual de la Web</span>
+          <h2 class="text-lg font-black">Logo con el Retrato de Vicenta</h2>
+        </div>
+        <button type="button" onclick="closeLogoSettingsModal()" class="px-3 py-1.5 rounded-xl bg-pink-900 hover:bg-pink-800 text-white font-black text-sm cursor-pointer">✕</button>
+      </div>
+
+      <div class="p-5 space-y-4">
+        <div class="flex flex-col items-center gap-3 p-4 rounded-2xl bg-pink-50 border-2 border-pink-300">
+          <canvas id="portraitCropCanvas" width="180" height="180" class="w-28 h-28 rounded-full vicenta-logo-ring"></canvas>
+          <p id="logoStatusHint" class="text-xs font-extrabold text-pink-950 text-center">
+            Cargando retrato de Vicenta (65721.jpg)...
+          </p>
+        </div>
+
+        <div class="space-y-2">
+          <label class="block text-xs font-black uppercase text-slate-800">
+            Elegir o actualizar foto del retrato (sin generar imágenes)
+          </label>
+          <input
+            id="portraitFileInput"
+            type="file"
+            accept="image/*"
+            onchange="handlePortraitFileUpload(event)"
+            class="block w-full text-xs font-bold text-slate-700 file:mr-3 file:py-2 file:px-3.5 file:rounded-xl file:border-0 file:text-xs file:font-black file:bg-pink-600 file:text-white hover:file:bg-pink-500 cursor-pointer"
+          />
+          <p class="text-[11px] text-slate-600 font-semibold">
+            En Vercel o Antigravity, coloca <span class="font-black">65721.jpg</span> en la misma carpeta que <span class="font-black">cuadrante_mataro.html</span> o elige aquí la foto de tu galería.
+          </p>
+        </div>
+
+        <div class="flex items-center justify-between gap-2 pt-2">
+          <button
+            type="button"
+            onclick="resetPortraitToDefault()"
+            class="px-3.5 py-2 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-900 text-xs font-black cursor-pointer"
+          >
+            Restaurar 65721.jpg
+          </button>
+          <button
+            type="button"
+            onclick="closeLogoSettingsModal()"
+            class="px-4 py-2 rounded-xl bg-pink-600 hover:bg-pink-500 text-white text-xs font-black cursor-pointer"
+          >
+            Listo
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =====================================================================
+       MODAL COORDINACIÓN Y TELÉFONOS (PATRICIA, JUAN Y DOMINGO)
+       ===================================================================== -->
+  <div id="coordinationModal" class="hidden fixed inset-0 z-50 bg-black/75 flex items-center justify-center p-3 no-print">
+    <div class="bg-white rounded-3xl border-4 border-slate-950 shadow-2xl w-full max-w-md overflow-hidden">
+      <div class="px-5 py-4 bg-slate-950 text-white flex items-center justify-between">
+        <div>
+          <span class="text-[10px] font-black uppercase tracking-wider text-amber-300">Coordinación · Mataró</span>
+          <h2 class="text-lg font-black">Teléfonos de Contacto</h2>
+        </div>
+        <button type="button" onclick="closeCoordinationModal()" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-black text-sm cursor-pointer">✕</button>
+      </div>
+
+      <div class="p-5 space-y-3">
+        <div class="rounded-2xl border-2 border-emerald-500 bg-emerald-50 p-3.5">
+          <p class="text-xs font-black uppercase text-emerald-900">Hijo / Responsable Principal</p>
+          <p class="text-base font-black text-slate-950">Domingo Martínez Serrano</p>
+          <a href="tel:665784402" class="mt-2 inline-block px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-black">
+            📞 Llamar · 665 78 44 02
+          </a>
+        </div>
+
+        <div class="rounded-2xl border-2 border-pink-400 bg-pink-50 p-3.5">
+          <p class="text-xs font-black uppercase text-pink-900">Técnica de Coordinación</p>
+          <p class="text-base font-black text-slate-950">Patricia</p>
+          <div class="mt-2 flex flex-wrap gap-2">
+            <a href="tel:638584056" class="px-3.5 py-2 rounded-xl bg-pink-600 hover:bg-pink-700 text-white text-xs font-black">
+              📞 638 58 40 56
+            </a>
+            <a href="tel:682775658" class="px-3.5 py-2 rounded-xl bg-pink-600 hover:bg-pink-700 text-white text-xs font-black">
+              📞 682 77 56 58
+            </a>
+          </div>
+        </div>
+
+        <div class="rounded-2xl border-2 border-amber-400 bg-amber-50 p-3.5">
+          <p class="text-xs font-black uppercase text-amber-950">Coordinador de Servicio</p>
+          <p class="text-base font-black text-slate-950">Juan</p>
+          <a href="tel:682169056" class="mt-2 inline-block px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 text-xs font-black">
+            📞 Llamar · 682 16 90 56
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Aviso flotante (reemplaza alert()) -->
+  <div
+    id="toastBox"
+    role="status"
+    class="hidden fixed top-4 left-1/2 -translate-x-1/2 z-50 px-4 py-2.5 rounded-2xl bg-slate-950 text-white border-2 border-pink-400 text-xs sm:text-sm font-black shadow-xl max-w-[92vw] text-center no-print"
+  ></div>
+
+  <script>
+    // =========================================================================
+    // CLAVES DE ALMACENAMIENTO Y CONSTANTES DE NEGOCIO (MATARÓ 2026–2027)
+    // =========================================================================
+    const STORAGE_KEY_STATE = 'cuadrante_mataro_vicenta_final_v1';
+    const STORAGE_KEY_PORTRAIT = 'cuadrante_mataro_vicenta_portrait_v1';
+    const DEFAULT_PORTRAIT_SRC = '65721.jpg';
+    const FALLBACK_PORTRAIT_SRC = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAIAAADdvvtQAAABCGlDQ1BJQ0MgUHJvZmlsZQAAeJxjYGA8wQAELAYMDLl5JUVB7k4KEZFRCuwPGBiBEAwSk4sLGHADoKpv1yBqL+viUYcLcKakFicD6Q9ArFIEtBxopAiQLZIOYWuA2EkQtg2IXV5SUAJkB4DYRSFBzkB2CpCtkY7ETkJiJxcUgdT3ANk2uTmlyQh3M/Ck5oUGA2kOIJZhKGYIYnBncAL5H6IkfxEDg8VXBgbmCQixpJkMDNtbGRgkbiHEVBYwMPC3MDBsO48QQ4RJQWJRIliIBYiZ0tIYGD4tZ2DgjWRgEL7AwMAVDQsIHG5TALvNnSEfCNMZchhSgSKeDHkMyQx6QJYRgwGDIYMZAKbWPz9HbOBQAAC4vUlEQVR4nKz9SbMty5Iehrl7NNmsbnenv6+pV/WqQBSKRQAC0ZEgCcikgWSmAWmiNKMZOdBA+h8aakozjWgy00wDSSZRJE0GE0AjBBCgUFUAqnn9Pfe0u1lddhHh7hpE5tprd+dePCBs33PXypUZGRnu6c3nHh643W4RsW3bz58/M/Pr169DCEQETzdEVNUvnPDlqxARAH6NHr77Lb5w5Lv8BHdHezzs3B7+9K2Pls857uS45Z++dU6+45j/NbbjPlXFe9t1/du3b7/66vshhN1uh9vt1hiT2ejDhw8A8ObNmxjjo309eo/jeflXodZTnTx17aPsctzDUwP+Qvu1L3zYyaMDg7vT9a/rFg87PD7h4d0fHeFhYI9Ogqpaa4ah++abd1999T1r3X6/b5qGDp1m8aOqb9++dc49RW990L78qIj4rfOVOzn+9+GvT1316NiOJ+I7jvPRfg6fHz3hC1c99dPDZ/wuk/mt4394+WHOHwrO7zgVx48vIta6YRjef3j/ve99zznPzLln3G63RLTf7/N5xph3794ZY7Iue3Qc8Ou+qd/x5Tt0fnjU78iCT5x2+BEBvn3uHnb1ryjPcvuyCvs12lMy5tfu6ikxpqrW2mHo3r//8NVXX1nrmBkAuq7b7/cEd7k1pfTmzRtV/eabbw5y6GHX30WuPGzf8ZJD5zi1f9kbPdIf6HfhHnjs0X7tMSCOf4d+Hp7zLyUP7n391zQ/jz/g4Y7Wmr7vPny4wz2HX+nQRf6XiGKMr1+/BoDMQ7/emB4KbVXVJ0iYf1BVAIVbk208/cuyHcappKfmcRQ8+KCHf5l5//L4n244/X1ZDR0eeXz6X4+r7gz1izrx4fmPDklVjbEhDB8+vHvz5o219qC5Du2Ot5U7IqIQwqtXrwDg3bt31tpx6hRB8UDgB5OJ4xEFUMjvXp6+TGIABM2fNU/VgUEAFEQAUBQEQFX0cJ7qSIFRhNz9y4JFRZVV5dDz2LkqAIjI8SW5T1BVkaPTbi+87WHkmTzMw/j1dvi3UzCNcXwcuH2ue5LvaBR5INPEHjpUFbnfgyoiqMjtc+M4vfdJP37H27+jRz/My3Tq+GzTzcdrVUEUs+YKYXj37sObN9+z1jHLI7pot90hYdM0Mo1bp3m31ma/7OXLl8wJEAAzA40jQzjM4tSz5sdCxZG6CIB6dwpRQXF8TJ3Eg07Tq5qlIQBNry4AHpMIJo4a7wx6uMMdSYNHU4og41gmZsTxHATQaQqnQ4h5JApAiMc9HcaQh4VId6g2Wjm3THP4ZWqUz5u+ypFhhNM9EXF80w7TOn07pt+hH5wmDaaZvTPU6UxEQFQEFAWV4xMEMNOAprcWwBobY/zw4cOrV6+898eyJ79afd/vdjvc7XaI2DTNsb7JFp+IENH79++RaLFciAhgvok5YofboeKBMAo0TV4WW7c/qAKqAuGkWybCi6rSeFZmVTpItGOGOHpqHWcXJyGM+RIZbR5Q1Fsi5jlCoiwcRURllC2Z78ehUP42yvBp1mTsY6ImAKngxNsjqyko5p5Q8on5XTjQf9S3ML0/kCZrxkwMBJjVwvR2IgKggCKMDzXN2oGZ9HiG8iskOnEIjq89AND49uCRtIHDDOZBychNACjAMS1XS2OMiByMnHsMZG9ZYVK/41gQiYhFTs/Obq4um/VnmuQG5pceQVRBlW6fZByqImZJeedlnIY+yQEEHCUHIow6UtEQ5UtEREQRgJDGfvIrdKsRp+vyHIzHDiJ7FGQIeYTjDzHGEAIgllWJRBMDZZmp2ZwclcjELVnsj2Lx9j8EQBCFqZOJ4yaiosKRPFTNvJB7O7w8Ok5TliKAgCB6503RI7E0fodbGk0UG+cbbx8fcHxPRm6TUcYjoBwpv/H1UUBSRQAlzQbF/OTiqx/+YL/fp5S+YKfbLBuynHigbgCRWNU7qDQZEFAdvQqaNEGWljhx0TSqkd53Z+Ko38OkTJOY5xzJGOuMVYR+CCkFUDRkibI6o0NHBg7MjKiIgISgIICaVVqmHRIaQxlYRyQR+fhx/fn9e+fd69/+zbquRiE0GVqqKqCoJrMNKgiDigLm7ibhg0hEty/l7fPDQYpPX+89ORz9roB0ZDONXJ4l5Tg/o3CcRIfKUXd3VdA0jUcK98DMk/rO796kpyadMPWmICr5nVSsnr14rjBqoUlMPsJG9r5iuNsQkcaXfjJFD9S+02QyNQAQVRQRsxUkCHJQ8Xe6BhiNQ5isIUUAEBYiQvLGoYiI4GhkIoCMqnpSBrkDQAOgokrTNI6vNyoBIchBcwhHlUSodVmUpIaHzC4H2XpkHosqyUF+ZqNi4ktFFBEEQEIVQEKZrKmRGTQ//F1dM3EXwETCaVpUDre/Yy/eCjCAqTs4PpZ7ETqyJA4DOBq75jmEw73gQX+THJv0oIgomjyoRxHq/NXCrXDMOvt2GjKZDvxOmcpfhuPuwGXKdGTBPIXyTaeICgIiGVQhQGMIxMTsQ03MiJMc0tG8BRgN5IlMSDDKSQYEIFUcZaFBAYmSBpFoHIIxAoSTyX5ABEBFsiGWH5QO1swkHrJjeMBORk15+Hw8G7fPrg/s2jtI6Shb8cGbeWduH/kVEbNNepe7jhQUyiTB7rnr+GR8SbM3fNAyX2ijDTRKAbnT30GKIiLK5BsBHITh3acYW6ZrNnb06FdERBntl2PtdWwLcgqoTjwZUSSyxoooC4uMWiKLF1QAGh9wuhvgZLNM+IECGlSlTHZCAGLWGBIAeu8BSRXo4BIePQvevojjw4530YO8fOTBj1/Tw5FbFplerS9gMzoasAfxeh+5vvf1tit5ok8FRCBEmezu/LgPx3A4MgohlXvI2bH4OX4Ke6cbvG8DjcMTUTg427fWODxgajiYcHSg7u2Tj++sgtDt8YOsJQBOMnAPiMZituKdtRpVVVEZ6ZZbEBTglqnx6LfDMHDU/OOYBCQyB05IWBYF5SdToNG1/tamWStPgz2G0B5nqUc55qE6uD+Hk4j/7hDz4/1MYziMT54867Eejqz1R/vMjWCE2uBIlT3a6a3CvnfOI89JB4vm7o0x66I73RzQeANkCCNz13UhhAw8GGOctaMsVTmoDz0M6c5D6qTLM4Qy4tP5ElEdQogpWWu9d9mpVVSB+2/bg4YqhyHL0R3vWixPXfxrhBpQvxCjmDDOpyXZvZ9GkESzOX3cyf3b3l6uI1Z5sMyfGI+dBgzZz7vX5QgQTKI0k+MLQ/9y0/EleDDrWTMRojFORRL3fa+qRGSMyTgEM+sIEyhhlnG3qQQHzPJYJgGO+kxBCUBEYhxSikVRWOvGaVKA0fzKptXoj2VzHQ7EOFLRkIEsurVpfg0OOW4HKTV+yNbXE+LkUSp+mSJj5xkmzL46ojyQBpMO0yOuGZXSU8OG+yrs4UnZHn0gmb5txAdA7fYZRnk2OlR3bG2dBo7GeIAEmCIPw0BEZVkaYzKqeWyH0v0oHkxPPDa6ZaBRhzHHGIOqeO+9daO2H8GVSR8doif3J+vL86Rw54m+60Q93tdjBspTNsPx1y/8NLYDxKQ6vX33XP/x23cSrQDwkIEe0dkKDPfn9MtT8wXZeyssjk4/jJYQgchaC4rM3HUdABRFYa1RdYkTKGSk8Y5Dc3u73FUGCA9aYNR0IYQYIyBURWmQJMPHAGPMZBRFk807mXxPPOn9ZwB4+Eo/KRgepfp3Ofn44K/BnbevsQhO7/HIOgdHZIz1yTiVIwp+34c/tG+TQDk6kt337yaoJwPlwcEjf+TeUEZTGgEUCA0QOkcAcMtDZWEsKZKKYsa+jwzao36O/z142QZQRCSE0Pc9AtZ1hYQCGZQbZc/osx4M2KnPR4g0Oko42VfTUYApeAEPmenR9oRBOx08emu/4Dc9/PWpn+7xHKoe4O8JVJLRjUW+9xQP+fUWB7o//qPQBNzr5u5p3/ENQHxEvD9y2uQEZmTXOYeIzKM9ZK01lsAAKWRgPrPHZAPdHfH003R/inHo+z6kWHhfl+UkmEYv4fZZpujKmE9wJB4QMUfEJk8gq62R+yf/EiYj6tb7+XbNcm8+H2rQJy5/qudvPefYl1e4F0tG0QliVLx9I44Y42k3frrHQ7xh1AVffCe+0L6de47g2vw/InLOGSJmHvqenS2hsM6NUMzRw4wf7t5FAKcwpxJoDEPXdSmms9Wpc05E4WAFfDcjVEeUWABoEj5HnnwOnyAAEE7YoioeDKr8L98XmV+Ehb7IeU/pvofu1R0LfTx0B/LLlzxCo6MDxyrskLgBT6mwW445FmJAt1D3Y1rp7r3vH5p07f1T7snY48tGOhFySimmXtWLOGuRJuD2SIngEUh+pIUQSUWk6/qu7YhoPp+ZnOE04gn37MVRX6tKDlRhRg/gdkIQAUVZFUkNGR39VFVVyIGf2yeTCSmdFNwETj467fdI8OWvT7H+PcZ6yD1Pfbj9Cg+iJk+3+wx011Ya3+DJLB8D7wfT/amWh6t3xQMJAIDQlJjztEy6w5pERpEcppRSSsycnCuKwlgzuUa3Az42ro/wcBpCarowxLSYz2fzOcMUR7zTBG4nUVEBVFCFRUBERURQNLEKJwYAQLXGGUugoqApJVGBrGltYVxhxogriKhKfuoRVDi65ZNS5OHBp06DY+v4rvg59HNH0U9eLxwws3vdwkFv6fT3pHdpVfV4FdhdCTC9cdkiyErsrsB4+FTZiH6KP1CB8BE5dHjiRwwmRJrgxhhj13UsXJSltTYfPIz/UXXAzG3bNk2DSCcnp875W/PkYOPAnWS6MTVGhDklDmHoY5CUEqAyj2Nz3gaIMYaUAoKGGEWkKGYppZRElRJzWVRn5yeLxcJar6IyPfvtq343qnCwSh4+y7eLjSNeOb7qDpNNE34swEbY59benWTuoZPphX9IaPhWLyw3OiLn6GQ9YKOHn59qB2PhkZ/uOlbHAswYkxklxBBiZBHnnLU2s9FTtwKAvu/2+30IYT5fLBbL0e6epgwBgHIYFTPeCCIAyjH0w9B1/RAGEeYoSEaVQxiY2TmnIkSWCHLOAyiQod12owohpKbZ73Z7EfTer05Wr16+vri4KIqCVaxzMiVmjMEYmLzoI/7JD/Aolzw8fttU4e45B3teb0+5PUH1kNSaGUVlyuV6ZDYfI7R9fBzTvXKijKDmUOa3K8aDaXG4EyCMyYVHc3SX4vcs6MdMy+z5gy8KNBRjTCmlFImMtdZ7b601xgBAZrLD5cMw7Ha7tm2NMWenZ4UvCFTy66iQM9ZIAQGiMmZfPw593w/DkMFLAIgpxZTath363hA551KMiIgYRNQ5570VVWVRFeeLzWZ7dXlFxsbIm+3u6urq3dv33//hD05Wq6quq7p2zjnnjLXHwgAmeYC3bHBHqOjBT7ybfHxrdeioIG6trntC6HYyD7rpTidZ9iBAlvl5zh/jUr3DQE+3I5/ri+fduwJ1SkeFHGwCAUCaXjCcsu8e7eBIhT0ULQjgnc9LBUII2TAKYbDWWWuJ6JDnJSIi0rZt07Qislwu57NaQYRVQUCVRVgSK1tjVCSFIQ59s9s1Xaeq1tqD1QUATduIal3VKaUYozGmLIqUuKy9dSUAkDIiFPWs7XpDNKsXXd9tNlvnfFmWIQwf3r93xhpjY4wpBUPWWFtX1Wy+8M6LKsuYLDYKAD2klR1UmwKAisD0gqneNWBGWwdG0P4x0UV0uFaOLjqYUJljjrPsER8Q/9h0sY/S6SFb6DEg8IDe9w8+5Nk7YPEX7nPr4j32++h8WWNNaazxIfQhhpQ4xjHt8sBDE29FTlzP5ienp8ZSSlGZrTHMzClISjENvXCKMYbQtm3Xd8JSVWWz36tqjDGLtNPViTGm7ztyRgW9dSBalaWoppSQCMkS4jBE78qT1bmj8vL6+vQUmVMMERGtdUAw9H3fd8wxMceYrLUnq5OLixfVbGasye7KmIR6WMECE5EPBuLRkcNc6cg1Orl+5o5omWh0LyL0iOWECKCSF8ZkO/EBzY7ve8eAuG+9jkpHUR/jw6O+nib56JnnXCw9OgiPfc4jPeRQfqERUVEU1hkb7DAMmV2yeAEAQswvtDFQuGI+n3tj4xDC0FoyQRhAhBMI79aboe/7MJChEEKK0Tq33e5SSqUvvPNlVVrnUowhhJQkhEDGGJu6PmrTJFHvC2cL4wpV6PpusXD9wIpmsVhYa5h5GHpO7AmHtgvYGWOFIQzROmet3bfN7hc/Wy6Xz1++qqrq4D9rtusn+k6TrTAyARzbSZkBsvDI/KF6u/zv7snj/w/a85joCoAiIAJ0SBT7EiEQ8cs20BFVH1x5iIkCTotlHmuZ3Y8WZnxL+6J7f288aq01hrz3Oc4VYxQWVVBh4yyRQRQEMIh92/ZtwzJYYwm461vhVPhiv9+2+watUYAUwtD2Sbmez513ZeERUERSikjqnHPeY0N933V9zyL9EIYhzebzWU3IEkKyzu22+2EISBRiJMIYuSxLBCysSV3rqzrGJCJlUbZ9d319A6DGmLbZN037/NWr05MTROSsX3Rcr3Sg9DSlt+Q/HIHRcsqcdOQtH+m5+3rqgZuWZxf1Ds8d//rQtLjvxt8lPkwm8WiV5Zz+IzIeL0eazJ/xWpwyAUb8Wu9ALw+MmyO4De5aQvdOPPybkWYkIqK8aFKEU+IUYs4lEtAYQooRlXe7fdfui8ISUrvfkEFQwAUOwxBC8KYMaei6Pg7x/OKiqmvnHTCTITCUmFWEWTiJsY6hb5qWRURQwXRDtIVwiCGGGucpcUqpKkrn3DCkuq6JyFk3r+sYgwIgIHl/fX29bxsAiDGqahiGMHDbduGrNxcXF2RIdIwwPELjrKjkGLiCAzfgiGjdAQbx/uUAAIfFOrmrw2xLhhxghG0OBHpU0Nwxoh9Djw/YAeXlIA9DmHCL2h0fmnQJQF55oAqC967Cex++OJjD8QO733EuEMkaSDF0XQvKgMCisW+F09A1280GEWPs+7ZF0hDCvJ631HnnAhFzEgFr/er5WVVVaDCJMAspdG0bUxJW770qkMZ6vmz66812BwDOlqXxKeEwRETsh9C2rXNuNrcSOrImxrSYL4rCd8OARKW3AHp1sxlCX1bFMMTZrBaRru1i3KQU34qklM7Pz533KgeDZuSYIyzwrn2dPyjo5GMe3lA9NnlGit5O7DHr6CR2jlxiPDai71k7+V/75XAMHIFdk9qCeybYYzS+Q/vRZcR7Pz3hZ317jFYP103PnN0TVtCmaTabtXM2pmjIgqS+71S1HwZrzGazQRAkSTGiaOF94SqG1hlfOTNfLFRhiD0odkOfEnNiSczMIYSyrKqq6prOuHCyOgl92O23xnDftbPZDACZmSWIiHMOMvbOWs/mRVH2Q28NWkNt18cYRdJsXrJiXc32+33TtMZaZ9x+v08qaMhae35+kQUNAGaz+p4ouid7AEB0XP2oI7pz62EdTSgee+/H59wSXHXSPnchmccIfUcC6S0QDJMyBFBF1GkMdwyZ4xfiKfLrlIWYV24e/3IkS2454mEnd79OMzKtogNVBVFmTtz3/dAP++22rEpFSByNhZyYRkTr9VoViDCGgKBENPR9NwRXz6qqJkI1dr9vYox93xvnwjDEGIYuLBYLUdxs920bZvWi74cQt8vVqShElqbtTkSyppOUrPPWuhiDiJZFXVUlGRObmJIihmEIKro6WXZ9CwJNsyei5clpjGlouqIoWHi73WYQ4dmzi1vv6p5L/8C9ylOtkwcOD9jr8JmO5c1duyp/liNGBURVuZsAeKfdsYGOoyXH4gqOWP5xv/3L4A3iwR68c/BWluDdg/c7OcjY47tnQS0ioDwMfQwxDKFtGlXdrDdlWXhfcOKUEhENIbBCXdXD0HhXl94rCKt4XwCRtU6U1+u1qnZ9H0LUbgCito2qst3tirLudt1AAmiMIWANYVidXHy+um66JjIadCohxDibz7thKAtnrCnKEpFubtbD0M3n881mEyM/e3bRD/0QAid2zrfdwAqzup6VZUyxG4amaa21KXFZ+sViIcIwpYU8lDp3rCIcT3pI5tuZnKhw7/LDxCI+ZqNMl9yj/q0Ke+KuBMpZVOT8rRx0hifY6B6TjlQ/aK4j4XVPmd6Kz6cBxrETvD1BIa9ElRBaibFr9rvdvut6VUkpbXbpxYs5szLoEBKQd56NwbKsLKAh6uNgkZQIgfow5Kp+fdeyUtsPznpSYgUiS86tN3sFavuejC2K0hcegfb9sFidfL68RoSiKtu+BTIMlJiTmKqsbOGb/b7phrIoP3++UpXz83PmNAyJjE8c2z6WVV1VlUgahhBZYuSU0na3F4Xtbl/XNdz1wr7AQ+PinsNXnZY4HSbw6B0+XHtsAGXRrpM7dizJjg3W43SOh7LnWADoZKhMCeZwa3M9FBKPojtTR7fhC0Q8FjnfJXwGxy5eLj8CAprx2xj6IYYQY2yafdc1fd8ZQ8oSE1vrnS0JDQJWZRWGAVWJqI8RjQUyAOi8F+Fh6JumQ1O1bQCltunIoDHU7DtCV1X1zc1NDFFEEqd+COVshkh9361Oll3fOWcR0RjbtL0CWV+V1Wy73Q9DtNZuNltCc3H+PItX55whU1XVixcvZrOZqqYkMSZmztG9vu+32+3ny8vdfn/ki0mGAXNjZp1SxY8/wMRwMl4x/gBHsupYltwRH6qQV67qmNn3aNTy2G3/tmDqgaeV4A5vfSt6NFF+rBkCo0V/OP6E5/VQtt2eeVd/oWTvOqYY+67nlBDNMCQRMATCAooswAzGOGZOwkmJ1FhyJ6crBaxms9L7ru9C6DhhiMKhZ9F90zFH3cB8vtjt+q4fqqoqq3qzXS+XSxEVI7u2rYtyt9uQtZExCqB1Q+i8JbK+KOZNNyjSvuua/d4Yms3naEgEEMEYMtaKat/3iBhCGIYeAI2xzCEXMwgxbtbbm9VNVVUIkPlBx3m8794fU+TAH4cjBxT3WEU8vBynxGJFMAp4f53p/RvBQyN66uVISFLmHB2V43H1ncdyOR5t2XrWYyz7oaabfEjNi42PdCUAHN9XVVGFU1IASSGFIYY4hL4bQojJOZeSShIkUlVjrIISYUoKAsYaRhJygWFWVxzl0+5KmK31QhxF9/ttLp2QGLa7TpUWy8VmvS7LcrFYWGe3u93p6rSeL/sYEHQ+m7fdsG/acxEAYBZE6wvfhz4Mw83V5W6/s0RVVRZluW/bsix9UQ7D0DVtdsuzOvC+6Puh67qYEssYxG37brPdn522ZVFNrHOQJrfK654sOYZ2AKZaTZmAd3nryO4ZzRiEXDVHp0iZHhJdnmKSb03nmHQY6aPS7FGBdE+XHXPPqP4OJSduv+IhTTc/LOgTUmqcKQlhAOHdfh9DYNEUOQx93w/eVyEEBk0pUUTnvSRh7p1zcUje+3o+F5X1bhtDAAQi7IbALM46RNqst0VRWuO6ruuHUFRVUdTDEBRQFMkXTLRvO1e4mOT87Gyz/2a336TEnJRTYk5lWW4326ZpPn76bK0tl4vZfKEiVVmpyuXlJZGpqjLGpCrM4py9ub5hEVXNhZq8L5zzfT9st7v9vvHOZ2c+w0ITMvQImgwAKjramwiQfXudYvUTpR4avniA8rKkMiDT2sKH0YzjC+8j0XclCubFoJATaJ6yzu8R+AEIdIsfTh/ywmABZACaFkbIsZR67EaqqsIqAqDKqWt2ufjIEGJKwkm8c13XbTeb1XK1a5uu6+pZ3fdj0B4J63qBhJ8uP1trvbHGuO1uk1Kyxu73jSFTlXVfhuvNZlbNFvPF5fp6UHl2chqHIKBkLBLt2r6qoJrV3llWNdaEYdjv9wYwhliUrhuGoe8/fvzIrKenq3pRE9Gsrj9fflbVk9NTa0zf90VRIGJVwc3NTVVV+6ZZ77aGTAih74fFcqUK2+1us96crE4QRwMUxmS3+xLooK0OK9wkg4Y6VtO6J28eooK3ZqtOkNJ3aPeDGI/YwmMCNn7BPzpc+Kj7jdOD0bS6HHHMcDRHI8DJasvmNt0uS9bjHkVS6NvQ90ap7/q2bUezAGAYYlFUxthd0/ii7Ie+aZocKQNAJANITdsWrrRkyThj7WK+KIqibRvrXDt0+2ZXz+fVbJEABk6L1UpYmn7Y7vdJNApziirctp0li2CILBk7DDGkpNkxVO37/urmetvsz59dMDMqeV+8f/+untVvXr+pizKlNJvNvPdkTExpsVwqQBIpqzrE5H0xWyxEGRHjEDebXYwRYFRAY3rtrXGszHwIa8gI+qvmmKhMcfXbOPwduXW/Sc4IymVtMjWfpHvu50tbGkxWc6YcZKIfty9de6D4JGMIMAseM9EbEQ65qge+gXzmYWXDvZvk6RFu22a/341SmllEvPeqmCI772NKTdtYa9u2Hfqu7TpArGeLtmsNGQBwzg/DMMTkypqcZ8Cma4wxArTbN2VZ1nXNoF0/MMvV1fWQuO37+XyRIg9DAFA0RhSMsfVsLqLbZkfeZr2jIpvtrqrrlKIxuFgsfv6zn5f1bLU6J2OAYD6fhxCattnvdjmJzVp3sjrJ6+67Yei6rm1bEVaAps2fheWWee7R/cAQ+YSccXZYXvrQXr7Xw6PnANzmbH6hfYmB9IFwOxwe7d1HMcPH2q0ouhP/OhJ1ebHMJEweuP0AAKrKKaUYVRUVYkqb9YaTKFCIKQzRuyLExKrOu6EfttutiGz3TVFWxroY42q1ms3n8/k8xsjM28326mZjiurk9LwqqyHyENnYYuiHqqr6kMjYtuvImrbvLj9f7nd75ypVbNsuxODLkkGRaF7X25u1qKCqM2a726YUrTExxovzZ7vd5tmzZxcXL1mhCWHXDZ9vbrqYXFlX8wUag8YIYmBenZ1dvHhhvRtCAICUEgv3Q9/uG5UEIsoCyqCsdzlgqh0wxl9FlVlYRq6TByfDAwmU55dUMxAEU9bRLdUf4zD4wrKeiax3/g+gkzUmj6o/uINpHvPK+OnR240/KhhAgVxmDQDGZFOYPFcDJIDNfh/iYBQLX/Qh9kNwrsgFIBjEeR9SQqC6rsmY7W7vvfdFUdU1IYYQYwghDtnIVJHr60tdw4uz87KckXGfr28iw8nJiSuKqp59+vQJQLjZO18Zh5vtri4rIiLjbq7Xs9k8V5eb1bObm2uJSVFiGmIIiMjCJ6fPZlU1DG01q69urvdtA4SLxaKen4y6iBMrCKCvKrR2iElj9L6IISKStS4MIRiz2e2Xi5kx5pCFoLeLkm/pdVBVOWUiW8R4dMKxv3ZLGkTNrAMoAEiZy/KvuTqlPiqHcm90zyDPn281FELGow548iQpRvn40BaDu4bUI2z0tKACGFe0H57tcAEgiQoZ8oWPMey7liVZawAg1/UIKSGR884QhRirukYkTmzJOmeJiFkACckUvvTOM/NsPvPer69ufv6LXymgM3Y+X/ZDr6CEtN/uur7jlDilvmuLsgxD6Lq+73tEYOa22acUEXC+mINC07ZlUcWYmrYjY3xZvHr16vLychiGDx8//eLnP0eF169ePXv2rCi9L5wq930fE4tq3w9oXFmWgOCrsqzrpu32u2Y+n1nrL6/X7z9+ars2RWZOiRPfV2K30kUV7h15CDbeuyZXoNYsewRkSoqc3t3JE38UVHxI5qPPt1x6dIkAKKI5hEIfZZGnfnp0HF+yvgHHVG8VQAlDl2IsilIBQ2QkC0ohBEWIKeYZMMacnKz6vm+avbPu/OJ8uVjFGAG0bVvrPBmLYMqibpv+ZHX64tkLNObDp4+urMuicETbzYZT8t5tNpt+iMZ4SbJbr4ui6oaw3e+vrq6MtevNJg0hhaGsCuPdbrsTlRz8F5E3r998+vT5F7/85fX1zeZm/eb165PV6uby6tOHj5v1jTHG+XKxOqvqGZABY5q2CSHOl0sgIwrLk9Mo/OHDh24Y8gKjGGOIIaUkx4b0t/LHl38SQVFSyGvfjn8Y3+fRs8+fH8Etx5xofUy9HU4EPND48TOPZeN3N4we8hZMcNfRz5MnKJI4pRhiDCkl74uu6y1ZRM7L84TFkM05hE3T1HWNiEgGEa9vrkMIzX7PSu8+fKoKv5zPRdRYu7m+OT07TaAxxrffvH/9+hURbTfb5XKFSIvFIsa4b7vzk9Ob66ur65vVyekQw3a7vbz8fH522uz3gEiERVVst9u6KjjxEIblamWM+ckvfh5jqLB8dn6x3+1TSmdnZ7PFwhelLYqi5GEY6tkshL7r+xTjbrfr225e1o5M23Xn1bN2v9s1e0sguiRjmBlAAQhQDnLhHmkVQEUPJQ6/xSrN1oiSZnWVxdBoe9+3ZB7t6n5Kq94xX25LDdAjMNBt7/ogFP/ozaaDB536yFnmsC7yAdCOQEAWyTInUPSuDCEgUQyDc85YN4RQV2XXdwB6+fkTq7589eby6gZJm6YBxGa7Q2t3Tbq8ul6uVt45sO7z5fWr16/Xu23XNB8+vC/Komm7y8vrwvuT+SIk3e+awPH565c/+9nX/cePb968BsVf/eJXKGxIrXHzxeL0dLXdrLu+E1XhNJ/PP77/AACn56dhGG7W64vz82o+YxWckr6tJUm43mwDR45JhQvnLGAuKIiIXduWZa1KHz98mJXmxcVZNhxY2KAigQKJ3rFEb0UHjI64PrB+sizIXwVzEVwgNRnIxRHv5ofke7RNFcoeWL4Tpe/bT4cTDoXxHmeE2/PvfTg4cbf28f1LDv8fGUnzeyGcwhAQ0VozDEmS+qLY7LchxJS4KPwwdKLqnOu6NnGyrhLGru9U1ftCRJYnJ+vNxrmiWK0uLy+NMbPZrCjLX33z9vXr197SjmC72wlo4LS72oUQ54uTwUUA3O/bi/OzX/3q7ddff/3q9euub//sJz81llarE9jvV6uVMebjx48Xz54hIsfIMbLErm1zmZHLq0varBeLxeXVVT2rqXCGCBKwQlJGxDSENPSJOaTonCMkVOjaDhS8d5eXV/vtZrVcRWUUFZBxQdsEkh1s2Xv65KGIOp5oBUVUUlXIgDUdLKjDu/64CT21L+JAxwT9zgWCHljQOOWj6WQ/6QT93Ld7Dtfes7uyx8SJw9DvdjtEAoXI3PbdfLYgQ/tmH2NSwP1+T8aEEAtfnp2dxhTLeg5kBDCkhASz+Xy33wHCq9evnHP7/f7Dp48i+Cd/8mcxCijOZ3OD1O2b+Wwmwk27WS4ra+1mvV2vN+fnZ03T/OqXv1zMF2Vd/fKXv+q6LqdgE1HXdV3bppRAVSQpS1EUl5eXHz98GLpeY0KWuiwL640iCCQVQCxdkUIUgGI2L+czsrYfhq5rydmzi3PjjJBNjOvtnjlNC/Ul44f34MSH5s6juNF4miiqouQUxDFQMr6tB45T+TLV7zPQ2MH4GWBUk5qBmeNdlb6srY7Y4j57fTeuvROdQQBmbnY7BLDWtW3nvLPONm378cMHZ42xVhXrai4CKaX5YjlfLGKMfdeH0FdVWRTFfD43zjnn63r2+dPnovBn56e28N77vusRzJ/+yZ/dXN+srzfLRY3I293m5cuXqlrVdQyJyPRDt16vT0/PQog3NzeI1PbD22++adtWVV+9erXb7W42G1UJoa/L6uz09Otf/vLm6kqndYM3Nzfv3737/Pmzis5m87OLi7PTk9L7eVUjS7tv4hCXi8XJarVYLmNK79696/q+LKoQU9N21hhDoMp5oyFRFdAM9sBjYuaIlI/Yv6oqI/TMIx+pKmCuVHNP7hwzxnH7LmvjdfKoJ2jzDpXvYD/HtM8fn46fPclG4+VTADovPk8poTHKTNZqiF3fI5lZPWsU1pttXc+2u+bk5PT07Gy7WQMoGtpvdrtdc71eW2ufP38OAAJQlbPVatk0+88fP33vq++FxG/fvjs7qxBxvY436zUaSjDzZbnf7jml+WwGqlVZ9m1vCTe7jXCa11Xfd0VRGDTXV9fe+cV88YMf/OBXv/r6pz/72fe++sogWWuHHn/4g9+4vr5u25aZd7udApRlSUN/dXV9db0pZxUROTJkTLGYSdd1fddsu8oVBFCVpXv27PLzZds33vuPn6/OT1dv3ryyKUUWVlEFug13Ityt3HNs6zz8kCkLOu1wk9dhIGje5EMPtB4T4Z/ytL6FgaYrslPNerRb0YQG3Q5XHwTsHxM/uU2ws96vUHHn4vFFAVVNiUU1qYioL4tm1yBqWZWKGFNqu76e1R8/f37+/FlZVd6X795/fPf+fR+G2axGwp/85CcXF8/Ozs8vLz8tFsvFYqEim91+tTzBr9wvfvlTa42xJqXU7HZdP5yenZChzfbm/PzZfDa/udnMZjWRgspmswVNi8WqaQZrvCC+++Z93w1dN/y1f/uvFb58/803n/yn7735qrDF5eYSkZaL1c16U9Zl4X1RV8Y5JOPKgpnLsowhtM1+UPbel1W1b6UZemuMcW57fe293zX7kOI+xb//D/773/vdP/eD739lnTUAIkooU0k0fvhOHi/kgLtMkOFBc7tADIhUlQGF+IiwmJnpEUt3lB2Hbb+PxeBkeQGANEPfrq/Py1QYmCDvY8F4LGzgHrqYmewxx56OLnm6aY4GSopxu900TRNTIMRc8iellBUsGXOz3iiACOy2u9K7y+trUOqHIJpOT1YpsTG027esOl/UfT+oIgMsl0sVDENCkz68f79er5umuTg7a5q2KIu6qpp2f3ZyOpsty6L8xS9/wZy6vu/atus6JLNcnKhIUdqbm5vNZuOc+63f+q3f+73f45TWN1fKYqwLKYWuT8zd0McUiqKsq6osq9Ozs6IqfVGqwurkZN/sN/vddr/1xiLgdr8VTqrinJMhEuKnz5+XVeUMdm2DqOfnpz/60Q9Plqcj6oEjNv3Em/gY+UfpJZNJOjYFMKxQzP+Nv/F30BS73U5B8DF1drtn6r2bHTnb49k4FmU2035pd4k8Oo9yuyHLnb9Hn+fxn+5aYNM3VRUe/QuBtmm3m41oIiIRGYbh5mZtrQVVBDw/PV1vdrvdru0a78zF2ZkmHrpufbNG0n5oRWQxnwPo1c26T3x2dgag+93+5auXq9WKiGLily9e9G3Xd/2z82fWWhEGhNVq+atf/Wq72SCaul4R2hhSURa73c57t1wsAfFP/vRP/5//5X/5R//8nyPRYrHo+jbFOJ/PrXNFWS4WK2vdEFLf958+fnz//v3Hq8soen2zr6rF84sXr5+/drYAMKvFCoG6IXQh7rvu6urq7ORMFLabrbW2Kuqbq/X/8I//4OPHD4RiiDBrGpUvzOq9liUE3j8NEEQhHXX1NEAIAPfWxt8j9PH/H7egDqc+FqaYXLAnz/xOTVVEUowpxtAPKkyIfQw3m40xjowtimKxmPdDUNUYwoerq77vV6sVM9dVudtujTG7/Z6sseC980MfhGE+Xw4MH95/OJkvzs9PYurDEF6+fHl9fX2zvqmqsiwLVb2+Xv/2j3/cds37d2+dc7/5o998+83bptkvFid1XYlo3/cAEELsh+Hs7LSqSiL8/PlD1+z+3G/99osXL959877vOkJwzm4227Io6tksMTtfkLVN0+73/enp+Xa/q+uyrsrZbLHf7/u+OT09T5dyc3U9n9Wrk9P11U1MoXTm8uomDENVFdaYP/zDf951zfd/8H1D9pjSD0mFUw6QHmckwph5dmQeSV44Ifp4LY2HpLTH3x8140eoAbPBct+IfvBhyqS8jxkeH7zt/u61j7KXqkqMMcWIqKpsjZnVcwGTEvuiUNXNeh1i2u52ITInPj8/DzEaE0WFrG2GvpzVm83Gl1VZVjFJNVs2TXOyWJbef/708Xvf++rZs4v379+JyKtXr99/eLfZrudV3TQtAP70Fz/7N377t4Hjp0+XKcY3r1+vNxtEHUJkZk4JAKuqEgVn/WqxqOt6XtbW2fcfP5ycnX3/+99bX19f39wIwvnZadf16/V6sVxWs3o2X1bljJwZWKz3u+1W+2AAQYFZ9/vm4vQZRNnu1h1AVZSsvG1bREyq+7YtisL58pdff6xms9cvXrCOWZ6H3cHu0/F+JDUvgVecMgqztB8ToR8rT6+PhRmedOP1kF2quTRzTvC6i1N/MWpxDAg90R5Xc7d8jKCoUwGXqKpEdrNpP32+TswAuFmvu67b75ubm5umaVTFWDMMg3DKAzDWNrtd4QsAuLm6RgRjaLffOeeYWRLHYfj86eNsVr98+bpp2hhjVVVEGEJQwK7rumF4/+792em5LXzXd9vt1nufEscQOCVmDmFomt1quayrcj6ff/r4se+6wvvFYvnp4+e6qufz+bNnz+q6btumLMsXL170Xfv27dfr9ZoQVSCEqCIXFxfG2BBiPZuXVZ2Yd82+ruez2SyGACrKHELaN11V11U958T90N+sN3/yxz+5vLoyhkYRMk7h4xk/dyyEiV4y7kEyFm6T/OMUBcN7RHnIQAeZpndxbhg5GWla7koI0x8SAqIQKZESjn/HbHTvlo9y28ODx2yuCgaMAWAOedfg9c02pVSWJSgOfaiq2W7XLBYnX331/d/40Y9Wq+XZ6Wo2rwDAWtfs996Yl89ebNbrs7MzFu77vm07UBTVpm1OT5YpDF3b/OxnP6/r+sXz58qh3e/qcrZanSCq9w5BUww//clPXj57vlwuVWUYOkAR4RgiES0WC0Ty3hbe5TIPqrqcL7w1+/123+zm87mz1lm7WCyGoV+v1y+ev1jM5rvN9t3799b6+XzW7Hbb7RYQwNB6t6vni/nyJAzx8+dPKvj8+fMhxdXJ6tnFxWq1vLq+/nT5eQjx48fPNzfrDx8v/8k/+cOPnz6bIzoef7hHC1VVFUVByrtdK4CqJJ2K44wnP1bQ52Gf3wHTO3blR898XOyMk6wcv37Lnje37QvC6e5xRFVOEQBSSn0XUuKu7xJz1/XCfH19M5vPyJgYUz8EAOi6br/bzeezGMNyuZTEs1ldlWXbti9fvNxut0Xh1+ubEIcQ+r5p3rx5vV6v+677+c9++uLZxbPzi9Vyub5ZM0s9r+tZVXrHMZIxv/j5z18+f/H82UXhvSE6PT1dLJfOubIsX7x8cXayujg/K4siV90T5ouLi3pebfd7Mqau61k9y5GTlNLV1dXp2dnJatW2zddv31pjTk9Py7Ls+n6333V99+HjR+/LqqpPTk9ubtafr2/8rG6GPm+e9+Mf//irN1/5oiirqijKoqhi0q/fvotDMHCHh25pfrcBACiL8HSK5KIruVqkHpzxO/R/nHB3Sjk9QdTDvrojr37Bw7oLIDx+1+PPo96FgxP3oDeUmAIz911o2q7puyGkrusRAA2dnJ70XX9zc/n584fLz59CCFVV5YTRqqqHkBRgvV6fnJxYZ60zq+Vy6LrT5fzqw8fC0serj2DMxbPnm836+vPlH/zTf3p+cf7D7//Gy+cvUojelcY4b/3p2cWLFy+cpZ//7GfOF6dnZ/PZAgiKsqrrmQDPZpWyVEX58d17DqGuqrIsQwiLxTKFmFKq6npW14XzZVktl0sW+fzpc1mVL168NITfvP2GiAhpPpudrE7KorTOXl1fzVdLJTh/dhaGmCKXvtrtmrZtc/bSq1evXrx4UZalsaae1cvlikUUEoHkvdoAgEBJb7cduiOc7im1vBAsFx6eSqRlp/uhD39MyseBxLsG9QQ3j2h0JvMBUfyuUue7tTtGNyDk9N6UkqogYkp8dnZe13VRFNfrGxF59uyZiARObdsOXc/MZVGoQBdjUc2AhQxdfv68Oj0BQ0u3bHZ7o1oVbrvb1vVse7Mpy+LNq9c365vNZvMP/rt/8Du/9ds/+uEP1+ubFHkd+Pryptk2v/WbP/zxj3/8y19902wbMFjWs0orVLTWbnfr/WZLgKvl8uLi4urqajabLVertusq753zSXhoQ1mWfijW260hOjs9CZHfffP2+Ys38/lMEC8vL+eLhaimxPPZfN/uwxCvrq7ns1mz2xJg7IZ6OffWNSzW2e1+1+x31hhJ3LXt0HcnJysiFE0IBsFkdChn+d/Hc49aXtYy7uowSZ3RX7rbnrJ37VPaJCPLoyU1KsWM4BgRAeCHpv6/WrsjKQ+vhYogaeJojAkxLBYL57xzru/7+WyWr9l3ra8rXxS6SEOM+80WAIauFZdmVe1dXZblZrMpbFHXdd92feyL0rfrttntFmWNwu1ud748qZ3v2uaP/+SPFyfLi4sL6+2zZ8/mi1kM8ac//emLZxcX5+eJOaV4s16nEHI8vyiKxWJxcXHR9/3p6ekPf/jDEEJins3nMQxVURow88V8t93OqyrFtO+6bdN6X1WzxX63Nc6iMa4oPn367AvvfdH1w+nJCSnsdturq+vZbHl9tfn67Vv6/vcWs/lmu76+ua6r8vzszADaklBBha+urrvu9XxeiSCCIB5WKdwv+v6QCXTMMRoPgcC0tCyH+283InpoSj9S3uVRwh4FLvAowvVwTHj3uu/eji8c5VDmXBVRhZRiXVXVbJFSWm+uOUld1UMMaI3zNvTd0PUxBGGuZnPv3Gw22+62u90uV1M8OzsbhuHy6np1frrf75GVY7q6ubnZ3Dx//uLi7PTTp0/z+XxWX5xfnF9dXW+ub2IIRGY2q8vKf1W/bpqu/fjRe6eAy/kCQOfzedd1IuK877pOVfdN8+L588VikdfKLpcra+1226Qoq9Wq79pZXe27dnVy8vnT1dnZRVE4jsmTbbu+rMu+G4DIWLPZbM7Oz1U5xf7mZn1x8UxUvvnw/vWLF2dnpzENu81uGMKz8zOHpqpKAGib7pt3737rN38DyYoC5s1C4HbX48eJO7n0OKo9zPn0eIhdPAhmHsMBqvrlVRl6oOyRmMrbAZkvuOgHYOqpX5/yCY9/PeAIMUVrHCIWRRmGEEPIpXdzHoWk5MjMirLyviqrly9fv3h2ziluttsY2XlPiN57Z60vCm/du6+/sUCEuFwuT09W2/Xm08cPqvpbP/4xEokIiF6cnZXOL+aLWV23+6bdNyEmMmaIfLNtEst+t2v2u8VivljMVNgiLuaz2axKYRBOhGCcrec1gArr8xcvYhr6vq3quvDee9e27epkuV5fM3NMcdfsDZmsaq6vrrqudc5/+vTJeT+fzxHh/bt3ueTU5dX1ZrtfrU7mi2UI8eryegjh7dtv3r97v93vrq5vhiEckhjgCQvj3uQfZhsP1o4eZMS3K7I7ZbkfRMso+3J6QKIPqmxc43XHxs8X5T/Nm2WOn39dOykvdxZIUQpfIhEZ8L7wrlosl74oCu8Kbw1i33XW2jdv3hhjPnz4uN1uhr5F5cKZ58/O97vdrtmXhX92cXa2WsRhqMpyv9+Xzv/GD3+4nC12+/3Pf/XLvMxPWIRlVs84JhA9P1k5hP1mrSmenyzPTlagMqtLFdnc3BDi8/OL5Xw29I2z9NVXr5jDMHQkDCIxhqbdIcJXX32lKs1+W5RlXdcgyVtTV0WMMe88fn1z3bddVVVVWbZNs9msq1l9eXWVYpxV9clyBQop8Fevvw9IHz5+dta/evkaAJXl9cuXJ6cn7dBvds1u16DeEeby2Oa1j/LEkaoxY1LrLZjzZPtSSmsOhI7jgFz1cSz98TBNDY8X2N6mDY0S8KH8fJSrjpzH8WJRIOO9g64fnHMalZOWZdV1DRIQIQLGGJx3hsw3b7+21jqiuiiMSlGUu/3uqu+qqlY033zzjXMWAAvvrbWvXr3erDfDEIqi0ESldxbpdLFEov1+Jywvnj/v+9YaUxb+BFZ9PxhEFLCFX65Wy8Wi67qmacSYeX16fnEKADGlsiyV2aMFEQa1jq4uP3zvq+8/f/b84+ePu/12tVxeX9/EIVRVdXV1/eZ73xdAItqsN9bY+Wyeq5vf3NycnJ62281ytWz2DUdZLJa7tlnMF87a0PeIcHZ2psKR5fzsvI5zY2mqy/AIgY6nGUavCxDzzkcTucdPqER4K4Qe7ysT9Ms40J29iXL9+dG6xftqaPr66MH7nx+/2R0ZllkJAYDIAYC1xhceEY2hGIPz1jkTYzTOqUJd1s2+8dalGCWlqqyqalZVVT2bG+9SikPf1dXMki1LXxWu3W2vrz93fbvbrj9+eLdb38S2lRSIkOMAzNuba0mREJum6YewbzsgSiLWUlUWhGAJC+dmVblc1otlnVc+zYtShsGRQWtZuK6qwjkEeffurYIu5gtjzG63m8/mm+1GOJ2drprtxiIt6nqxmF1+/ty0zWKxUNWmabqmY8VffP1WiFzp3n7zlgzUs7rr2ma/v7q86vpu37W7bv/h8pMSFGWZd1sXRQFk/TIud39jVIVcWpcABTFN1P8WY9bekw33tdghu0tAzR3Sfnn9vR4H7fD24MNbwOO8hdkHI0OiAJiLQUcAEOGyLFhSP/QZl6uqqm0ak1HHGKuq2my2hfe77a6oKyJTeN+37b5pDdG8KJ21BsAQ9oDFYl6UpXPu4uIcyYQQb7p9TMN8Xvdda50/Wa6YmSXNqxkiWMohYurTYAu/WtSLxSwJh8jWWI6xtoUieesMErI6a7GAIcaubb33s7ru+qDKZ6enm82mrqv5fMmxI4N1VXCIm83m6urq9PQUES8vL6uq9EXx9u1bg7g6OXn//uPJ6XKxXPV9rwl3TTNfzIFoYN63rbUGyDzl39wNck/66sE5OnEW3oUTn2pfiMYfURJBENKUmQZyu/3TQ7zg2OU74qF74OHtIz3o4qCLb81B460kZk7eWvCGU0KVuigU0Vq7Wd+oSFWU+922cLbZ77wliZEASMQiQoyLsljO6xhSN4RN24KqU6jquSuLIQzCIom9M8S6LKqlL60xKaWu6xLHuiqcm1lrnfVKQEScko0WAFMKQ9ezgjXOABlrK18kEE+YlIQZDRXe57hU1uyrxbxpdkSwXC76fthuN6uTlaawWJ04sLDf7br27du3dV37woGk0rkfvH6z3e/W6/VsPr+8ulktlydn522zV1VOKQy8XM2MsUSGmYkMcMqkkOOtv25D7kd2j6oq0oQ86uj5Eqn5DvF4gHvR+HsJbAC3xTEVFDTvdiVyW8nw2MQheMCvB/HzqJ1+7G3d5Z6ccZZXo+WdnDFwypRo+l5EiNkVbt/2ISUCXJ2eXV5eMkvbtKRYVqWdF7PZPHQNIsYQOUm7a+LQA+JquSCgFGNiGZpdnql+v+sBJKay9GVVAgA4YwlYCgDyhcsS16ENw2AIRTGEAKpkqS5LFhFOCirAlS+Y2RKlmLp9b8pqXpQJUVU4Je/syWLx9t37clafnp62XTf0A9W0udnMZ4vT0xNWCcNwdXX18vnz608f63pWePf69Stf+q7r3nz15ma95oEXywUnTjEZQufsbDZXFOZpY7sDjvOgIdLBw8qWa4YTR+QESMdKO3cV3J1Mw1vC2Ydy4khgqGLe0CCHSFQncCpDUzrVEctyb8wnuFt+JoPmd7/esuxTdpGONZTyfhcmpQQA1tp+GAygMcY623VDGAbnXFGWKgLCQ983m+3rF8+ruijqom82GjlxMsYDmcL51XzmCFkY0IAvVBVmlSow88DJIBWzWd48CgGZ06ws9203hGiICl85Y4G0rApJTNCgondFSmno9khUVuUQB2fIGmMQhmEgRE+kKjGEoFzNZgjAMdV1fXZ6dnNzY8kUzgFgDJGcGfp+2zezumROKcV3797P6+rz1WVMYbVaPbu4WC6XNzc3z58922w2V9dr76yzVgD7kIwblssZjiXPHqA3d2c3i56ssOgg68clhTK59E8KoGMSfyknWhUUQQDGig2EcLcqlt666DQix0dDnxAnHRXrI46Y3GWne3cfpZchAlDnTQxJVb2ziBjiEGKoqiqGUDgX2s6qxnb/8uLUOfUGNh8+IIDzVVHU2b1b1HMBFBanPsQAGqxzZbFMKbVtO6tr1cPe32osOVcNwzArvTeQBFIfdt1NWXpLCCreGlWrwGXpC7UcY7fbkHfOGAKNLIZM3/VkrTCTsQZt33b5lYlDrMqSl8uub+vZghWrqgpJyBhr6Prqkqw7Pz9fLVYppGpWf77+fLW+EeaXL1++evXq5uZmdXJCROubKxWpypqIRCVXroExFfpLAYxHphtu6Xeg8sGI+IIue8QGumNTK4BkNAZAlacpnio+jqnNR3JF9XYnbJ2OKOKddSf3LXVAuCOcMJ+PgIqCCAZBgRiECBNz5ath6JCg7ZvS+NR3Q7cfmt2sMCBDYVy321hUIgMgIfSGyFqCBEjOAqUUC+d84Y2xzIBIs7omgzBW/kJDhIgxRUsEgr4uU0pk7KJ2Q9/HMBhDKbL1HkEpJQBQFG/QGIsIKtEQcErGIKeonBQAkKylph/IeSJC0MVibo0h4whRVcqiBILzszMBWW/22812u90WRbVcLX/jhz8K/dA0+y4MFHk2XwHAYr4yZLbrddO381mVIoQhMEtWQDrVh3pMENHR4QzWZVRPc5kmBFCQaVeCQ4TjcdfnO2z7PRoxwpxxmSOdNW3+d1TM55YFRjBp5I17hvOtNp3yQwDulNLMD4ciKArMkjgRGVX1SMwxxqicDGhVmDQ0ElqUsCiLwnsZBm8IrTHGgnGgSERkyAAKECG6uiZnRVhVrUHLqGA0cyyRc44QE3NRFmHojSlY2HuTEhPAclGrVqgqqKKSUgRjOIkIFIVHQwhiDKXERKDKhJBUOUY1wKIakzGuTxFUEWG1WjZdX8/mm82mKGfdEATg/OzCGdeWfrVYvP90+fb9uxTCyclqtVz1Q1cWjgElRQmpni+CpNC3xtBiNiutQ2HlHD09qjd/lwOO/eKJlIhCakRJEMYM/S8oweNY+303/u55oNONmdVMW9sC5NqNMkVbb3dB1UPYdRRA9/s+AIwHGZvzcI/hUoSx6gwIIQgqAyghZYVXlsXV1ScCkBgMqFVm5tT3Z4tFimHou6J0zpmROQrvrSdEQEAisg5BOeUKKbmSq5ABRJvjxIhOlZGgsC5xKoqCE4cwtN0eVAvvOAZOyRoCAGPQGsMIKuys1bwnQFa7CEjESCFFRApxsOKds4PEXIjTGtP1vZtb56x1tiiqrhvOnp2vN9cxgiuKuXOb7e7Nmzf7dh9iXN+sh8+f5rPZzXrtfTmry6Jy3AyzonCgzGycc94ZawUR729r82QbLVpURVGUEQsCxKMsjtEueQKCGatz5HZgqwNXjfs1IYKmyXLONlje0UP1EMk9qlGXJaiSIogK4p2t5kxmtrGcLwCioorCHREFB+3HSSEigiqEEJbzxW63QdRhaBGoLBwnRtST1YL7TpWJ1BiT9+pGa0tnc56mcxYBVTkLUkvAMZJachbRoBISSt4qXoDQcIwALCJxCMxpMV8YgyosMYK143ZMoClGZTGARGCMjaKxa8uqBFVQJQSQpKikoCqCPg0dGYugfd8Z6wAxxUhDWJ6evvvm/dD3F+fP1rudMgZOvvDDEBfzZdd1eAIAao0tS0TQOPSBEwJYhHI+V5Vmv1tWhS8dYM58uRX29wg/mRY4OWkICIqCuZRGjsarUQBQhgnOPW7Hos3eO3RP7OUSq6hggE2uvZjLzOpUL16ZstSTcRcCzEHgLKNybcRDQAQnrOFg9OhhcYBkLEIEiEBzOU5EYVFBEWAWXxTD0McwxGFIcVjM5zLEoqza1GXIoyxLkXHHCCJyzokwEhbeIxJzAs0vgKYYITJadL4QImMcAnASzZIjMQAoi6gUZbEslwjIElWFvAcETgkQAZWdLaTIxeSGbnBorKHYBUUWUWdtMBhSMmQBJIUWUgjtzhczAeCYVKTwBYvUs3p1slqvN0Vdn55d3KzXiqDO9f06pWCdXbrldrfbt621tt3vEaQuC2fMvm2dtUVhDWLhbFl4hIMSegqJHn0aGEuewliDTPVQkexb0cH7DPT4fXJ134wjphYxAQKqIKgwWkAE5KzCiAQJlZRQAQkNgBLRAQ7M3HhbkBUo20+Helo0Qc+IeWGAUUBQSYnzEjsiysKGAEi0LCxyrAyiBBKWIRS+EBUa7wrGWWM8EREpczJks5OiqjqWXVOylgwBkkFKnJAIAPOu3ohKYIEQiERzcUJQEYa8JF3JUGbTvB18YiFCYTHGkDUMPHRds9sqgIQQU1fXMxEBVRDh0HlTBBEU8b4cWPp+ePHiFerHjx8vz18+P7949vHjx1zU8fr6KrGEEJYnJwvmoe+9tc1us91unaGqLLuuYQ7PTlZ1XVaFhwlPkSfY59ipykx2u9hvSsD47vHvJzMSx/7GG4oZrg0GzGmziKC5jA0aIAUad4pWYAJEIjSKBskpIuVVzIhKgESIBtAgSF4klCSN9bZVx8UBk+mkigosYFgEAayhGIOxlDgyx9ITiQJBih2wkDFkUBJkiiKByWt/Ra3xwoxAx+sViCx5sN6hMUZQhY0xiISGxJq8OCZzNCLoVA8DEEQURIwxRMhTTVQEdWSa1LEwKhlrVLD0hSS+vrpOLGgo1wbNAjilgKK+rIkoxFgvljFEqOHFq1f6+dPnz5/49Pz87Pz9h3fO2YuLi6ubdV4BLSLGWmtpXr0ASSEM283aGLuYlQS6nM2cdcyZgo9VdHqMk3BKXCQaHTGgKZaR7eAHSvBxBjqCuu/b76BqtHc4oFoDPK7dsKPTqxMyhQBJRFhYWFmFgUXH4hGiURUQyVhjPRlryRtTgjUhDlm0JOHRFh/TRVBB0VRJScGoAhKoCrAU1lBKIpIsKTOokCUAyGtV0RARWuMAhMi2XWuNVRbrvDU5nRJTYmstqGEWa2yGEmIKHMSOi/QwgQgLBh1z9XLxZBHmxKTEeFgMnmJkjlXhh2GInKxzgtD3PREtV6vtdjfECACEICnle7FESKkoK0+u79rZ6fm22c3ny+VqRcbcXF71VXN6cvL58nI+n796/mK73Vo0xhgFFebYNcYSJzGExnuLOK+ruiwBDJHClNb8Jd45jkQhZkYZzaDJAqbvoMgex4GOA+OIoMo3n76psUV0BhUACA1SzhciQwbJat5yGxFBSAQAJJeyQVWVmLejCXFgydoAwNb16exklfc3UcAEPFXzRySbi0X7QiJ5W1YsbIzhFKyjyJqYHZGkRLkWOx7eGHTWGmMQ0RgDAN5bVUBjgCAJiyACOOckIyYGUhIYi1OTdU51rI2bizPm8tYCSkR5GQMiKAhPa38R0ThigVyrmsSmlMgYY6jtWmau69Imx5IMERLGFI1zIJpiNDHWi6pvW2vIWgNIQ4zLxdJbt75eb8K6qqr9bkdIdVWLyH6/FxVhcda2bQMqs7rq2tZbu1ouimxgP8Y6j4aSbr9O8J4emcyjh/1tjGgfaruH4gcBms2O5RrI3u5iOO5Qn0/KS8UIDSEiEhkiVRAQRGvVADAqE8mYeKcknIZhbVuJQ4wKgMAsSSRJUkUFI0iGsEqo5cq4ksZgO+c1+gAqnFSVOWacBwEFNGsiY8Y8JyJSzUXvEUABSUEILSlGTt5bBTPuJgGKiJxiShE072ikpGqsYWFWzqsWUQ0xqSbO27Jyyu9b3vU3MltrI8c4RACwloSl73tXFJElhoAIKpJSUiBSDyLWWmuob1rryzgEY0w7dIv53JDZ7/dNGJz1bdd2Q2+MIUsp5M2JusJbBbCFOmccgS8LY3I+kH45S0fvZtnjKH70W8XNo4jPrQQ6Vl4HIaRjWiGycEwRxkINCHArwOEQRiEka8ZY3aFAnwKpVZAMLrMCa2Y3DKFt+tZaL6ACqgIxcdSYHW0FNM4jVc7PlQWIAMARdSIiAsIZ1CRAQwYRU2JVMMYYQyKc1VneRs5aByDCashaIhFNkEQ4Jsm8lQs2M0dRtsYaY2Iu/aHZLKPsVabAqnkgh2COpMQ4FWBDxBijNRYB9/s9IOSdBvq+s65ExJgCiyKRKCsnkcRxcM6FvgPjRACJhhAIWgL0ZSmEquq9b5p913dEhmNE1aqsOPWREyozp/lqMZ/P8lbU2UI9AMjHxJ6g3WMkGlQVaUJ982m3/tvBFH7SrL6/2cpdfoJJyCCrSBIgQhVAUh1rzxDlgDmKsIKiKEIuVTS57gqiCcb1OWOxKkABIGsxaUpJJdtKms3VlNNBAUkFo4uuSsrJmAIUACX2LcRAoIgoymgJEFNiAHTO5RnJFeCIyHs/hgtHrIo4KVoDoBzVIAEiMwszsnLkwhkkSokBsuiyiCrCSHqI3KmCqhhjmBkVESGEoKrOuTyZMu7g5LebnbXWOdcNfYxRVXLBuBgTkQWOaehV0RvHaQihqxar3a6xRCziqjIpl2XZNHtmqarKe9c0+8I7g75v910YqqL0hrylwpG3dlRBSnn678WtvyBOMr5Hx3IrZ5aNKWmPGzkZO/zWXZun+42pHTmAMVbdQ0REk9WmMUbHDWJHZOdol9T8P8PCLMwjtohoAMlmKwkACRFJDVgAVE3MCiggDCwcgytKY6nZDyBiQDmlCbTInAFEhgwR0rjW6bYRaFaqRlgAIfS9qsYYrS8FGSfEnSwJKIfgXEmGdCw0IMagAmfPS5XzXiT5/cnXGWPyVr3WWpkWsgkrkd3tdmVRIlKOnIgoIuU3xpAoJxVAAlJJQ9CKDWJM0VibdzMA5rqqhiF0XWsM1nW93+0QYXWyMo5SYkAi1NIXVVEC4MElv6dJHqfpE+DyRLEM142u3PFpXwIS73UjWZKgGrLoLKEBQFUgkQkYBFWWA9g83oWOoW1CyirWgNO8p5Ygi8SQDIExREQyxvbB5PoSCpySShDmlAaSElVTCgZRUsTMyolVhDLyapw1TjWHzChb0GTsoZKVqjLwuHpFlDlCYkhiygJR8pbhhkAzygUSQ3LOqDCRIbIyCjZmZpaRuACgIIjgnCOiGGMKMcs/Q5QgWmussfum8b5AAECTfVZUUE3MaMnkymLCLIqh7y25oClyIjbO2iFEBRHN3rv11qLCMHQpRUOGvEFJ8/nsdDVHQpl2lntaDtyGkg6cMcUdYfI2QQjNiAgdViE/2ed9N/6plpP7hcjmrDI1mDHkvK7tthpoRg743pbehAQAhErGOGsBSBVZICaesuaywswOEZCosiRNOTOmAOaUCFE4CidDqAopRGMM5fQg65BQ1Vh7u3mDCishABAdWBlU1HqLjJoGBQQ0KQ5paA0iAnJMaC2qOu9SDNYaYywiqsBBaDvrmDlbV0gGVJAge3wouWC+9n0fU2LWsprFJCFGIATkGJMxHhVYxBhAQOGExjAnJBNDKCvvvWcEY4xKaruNMc76kpmZGa2fzxcxDqWrnHcpRk1iDFV1LTkd+mjOjy3au9xze9bth+O9KKd/vguYeL9ONDwwtvPxFCOFaCwp5tJomOvKICEAoSohkjEwEu7oGcYNqPJCWwDOoiln6CMSAo97WmUWHD0IxOyvppRKHTeZA4XQDwRKZJIm65x1FsbqaaAiMOlmIpNtHsBcF4Wd89ZYEGSNHJSsVexEGVSRmQBTEkOY9/I1hmIYrDEHWy7beapKzjGzEpJzGbEUHlcaICIZMmqygmPmpm8RyReu6yElVlCijDmBwTFokJVFStGVPqQ0DV4RUUSJsB8GK1hVlarGGHxRnKxOt5tLY4gAyNKsqggNPMElTwGAd37SMQh2EEoPLfAng6lPR+N1CoSRIlnvCinQGMQDdqAMSiw6WdqqatESAprbu+ZQyDTkbNKAMAMwTmvHkHIEQg1SrsCuEHEgSZxRSWUWYQTiOCAiM5MjwkPRRsCMHlk3Wj2GECnLRCIiIgEYhoGAYuRssxGhioAqKTJj4UvmRKRVVSmiNyYH1XjcHFBUgYiyS6YK1qGIcgyIhAqcgvBY7IJjNITWWuvMMARVYgVE0/edc94YoyKAYBSBFYTj0Ksk5mhdKQjKknVi0uwxiTUUUyp8Ycj2XesLW1V12zYxxZkl710uEAWoeMeB/07xrCn9UG9RoNvciCmG+fiFCo+GMo4k3gRjA/iiKLBCY47XqWXvPeuvsciwZvd+cuDGx8K8hQUBGiIDwEgAqkIiijRWIMpRmSyKjaoxMcTIKYlwdqcjBxYhYywRaooxcUrO2KiJmRXRkYEJj86ltDMlECgvZmXVvHtGVjSWDDMbxKIsWCUy12URYySLRMZaUhnr5yAgkDFEOTMakViFSMh5FpbEzhVqJaVA5EQ4hJiEiUxVViHykAIZY4wZhr6qTH4HBEVFlDn0IedLG6tESIjGmNHLQ1IRInLe5zgGGNrudoWzImyIrDXeObgjOw6Y4X02moTFMUvkqAXBIc39u7NeFhmPHsWjTIDxIOb9KhWmHU+nISIRkjFjtY6pHfoSAB5/QFIz9pD3NQMCMAoJFERM3jBNQVkFEJBQQRMn5pTLsKcQyRhDQKwpJOFoCFlSiFFScmWZJCdQKxEqQuGL7HzFGI0hJAsCgEZFK+e23Y4s+aKIfeq6XVHNitksxR5R0RpQEkCy1iGJCHMEoD50MQzMMMQEqoCCAMLCnFQEEa0hY9CVhSDExKCYYjLGlpX2fSyKYhhCjNEYo2OteA59H4aAzpAHRwQiWSIn5rzxdFVVAGSMsRYi581hwQj0/TAvbV1V1tqsYw9R9CNzNn+ggy6+ZZrRVMjVNikvmTggxKCHUPqTLXc45gPBlDx/FwnPYNBY7T5LFVAdywiPlg0i4aGCgx5MZpxYTMfdmPObnKtSoeZQl5m6zCWPMUNFoKTIh3QzFlFRZYkxEBKCJE6iAqjMEkPqh+i9C/tWsJvP58YoEbnCq6owc0reF6KqKkQ2DJEQhn4QUSTIECaN+2A6Uc7lpAzZmBKnSGiYOabQ9X0M3QiU53CGcEpBRUMYQoxt2yUW5623pi69IeO9H4ZAIBmkYJYMWGdpy5JEuG/3iRXBzZBYpHBWIiNACoFjZJbVcmGM74bOWOOdWw83fd8K26osOPSFLyYX5ZZDjngFJ2f5WLzoYZXDtA3TJL0mjaMIhyDnbaGFx9rkxsNRD5OJM/6SldO430Kec0k6Wo65arPmDMpjbkcEAJnSb2Xa73wqqqeQc38AYJRGY6Z3Fj0KagwhjtYocwJIoGwM9m2vzAZBOFMfyJgkoKJkkJmt8945Z1xSjMPgrckvgbUWFEE5xZjiwKImb/wD4ItSEVPolVNOpE3AQAgCXd+EfhBAQTDWefLWeSQjCpJi3/cx9oVzCnp6supD34eQ+mG/72JKaAgRIkdrPZEyR53cisjJex85GDBdF6ridBgGi9aIOMTYtSrCwr4okQAwkcGQkjfkvd+tb7qhLVdzsoQIBAIqiEYfRDBy2OBBrIomkPfAcJKXTz1YCva4BLqNUtwrMKV6bAAdYVAIOUIhAKKKmLezh4yLscoB6kZEATBj7vQtPn7g97y5F6oCMAESECseboeTzBuZCSEbQILKnBBEVfphcESEaowVFIemsM55j0iqSoas9Y4MoVkuTxCROSqrIYyJEbCaVSlASgMK5QQ35wtJEQlENcRo0eYRCEtiAeOKRQFqbeFRE8eQYgJAkIREZeENakoRgFW1XMxYSmHp+rBr2u1uHxKDmqIga1BVjTETPoe5GIhmcy0lSVFTBFAB6WPvnFNOZVkgGeaEqETUd71Kskh93zfb3em8lJRukw9vGeIYYs4zf/Tr6G/dBuwVAEBGLQh4r5OH7YBEQ46FPRL/mvKBdHJzVEblOIXHVBUkp6xObhhmTx40jRtBjSGNaS8HEsnA0WjpJ1VAHZX39Gg47UGU1wdkPCgvhQWGxGKIrDEA4nxeB+GscznsEENExKIokCwaa3Jo1xq0mjihiiQGpZRkv98XZWUdJQEUNcYOIbAyou36Xq1B44RFVG05o6IkY5CFBBkSklEWUCSkoqyTd2HoOQ0iSViB1RhTWCt1RcZs1s3l5eZam5cvzq0xIUTri27oEdGQSZxEhMhKDAnBFLUwozDGBAilNY5MDImZy6oEwut1ZwAL79v9VqN2jaTFggXJ4MH/Oib8+AKr4h3Zkg8romahdSD2Hd13YK0n2h0vLKOBj7Jc1p+UrRki1TuWsjBPzh8Yomm0kNHkw70AEcRkh0gP/p2qqOQ66+PQCSj79HSYDhBllpThHEM0m885RGuMMYRI1hUKQIgK5Ou5iPQxOKNWYNdeszASOWdBAIkUoG2bfrdJfTefzUNiQybnixlr0xAjJxZp2sY471zpnWGOMViCgBx56JWT9QVaZ5CUh/1+Z6uqWpwOfReHRrl3xmdAqrBQVbNFtbLW/tGf/nzbtC/PVnXlGVRErLUKKCwsagxAYsAU+pZQGQFBSZSZCTAOwVpLSDElUIlJVicrGZrUNEkisBjEnLwMeFvu+XYziZzceo+iMOUD5deW7lg5qKBy5MsfscsjONAXWOxwASqQMdbYREBkEue0mFxfAVWErDnYPZk9pt2nYBKfCqAiY5brmC9BhCKqkgPIiKhjaI0YAIkoL9QSzW4cKFhrUxhyTeQYeTarCR2DOl8Y51g1hQQSWdFVdVmYtttJ6Js+WBAwhqxrm420u9gPtphZYzUmzcEtIkRKIYWhl4hzX8YYY1BjPQoyR+eIQawz1ax25Xy/XaOAK4o+BhV1xpMJPYdMLE6pD/3cF9bb87PTH/8I/uBf/Mkv3/ffe/2yrisWRWHmvHUuiyIwIwkFQok5g5FFUorC0TkElBj7ru+HtokCHNqbDx98CmIBXr0istnfP4iQgy+WLaB7Emk8YYohTrkcOQqbqZ0AZSqyeYcT7jHT4278MfscMIOcYZsTRs0I4CkpKmYsJ0NeOYSroy1FqHxsV2UrfFxAC8zjSyA6bUBnAMAoIFEiQ4ftNnUM1RtjiSxiMGRjCEVVGmtUpKqroev3uy2S8cVsdvZcgSSkOPTA7Kt5eVI0+xuJkbtWwrDfbJNx5CzouIGw8UYUgQLmlCCEpus8OWMMK3DXGmOsc342974EY/uUXD2LQ7dcrmrmZt+x9kPbDE1jq3JgVlWOKYUItgTA1bL60Q9eff31u+ubNShwZO8sgIQwGGMAFAhDCibavtmj8XkNk7M2pQiqMSVIKJwkJUAc9vv1229cGs5fnhGBIZIkeLuSE/QI1Tn23bNCO9Q1QEUgATwSV7cQNGbRdNd8umWmg338BQbCQw0XAkgpBWZAoZEBpyXVBGYUhYqIIKSkMOZ8gRrkvNPaeEIeqEAuSqwT8qOqBgiQAIUOPJet7Zx2LGiM8QgqSFYjW+tn8yUoCMeb9x+N9/XJWVnXdVUvFqukdPnpw/pmvb6+Dl2/OFn5qmAWFI7DsG/72csVEaWk3nqOUcEoKFqrICIcyZCCQxRR6HsBzFtQWmec1b7dCWAK0Vvbt93593/w7Ht10+wuvaHry6bdp5RU0tB1xpbzkzqEQZVPl7ObqhhC33adNeicj2EIQ5jNZ5CBdFVhFQbhYKtKDLZND5pRdQz9kFQSgKpSDJCCL2w1m1dVDYqAkos3TexCAIoEIOM2FSMH3fJR9rzygQPT5Gr1MnpEuSLC08HUb0eidazCgQAgMaYUYNqdjChLPz34X4AgLDkFCwGyZZOzhUSPA3v5DiQCMBXKU9BDIdAx9R10XPYqKiopb/nuUIKwgHV2Xs9Itd1tMaklnM8X1+vrT58/3dxstpvtcnXy2z/6rYtnL/dt9/nDp65tqtI751lBCS6+/0M/XzAY70qVmKEDg9BzEhAg9UXpyllICdouNjsqvdraOGjevr+8+kTGel9actbasqhAU1kaMPji+fmLlxeXnz59urzut2sjyRWFGJO6Xo3a0tdVOcS9MTSfz5gTgDpvVdUgpJQAIe+s18e4KL2wxBDIWOtcSCGmRMaErm2363h5SQC+KOezReHLkdo5jj0axQgwpkvIhPncc/HHZJhb1lBAyWnEOuo4GN3lL7Yv20CTKANKrMR5KxfCcdHuhDJkBs0OKY93Z86cwqp5oenomk9mkSqgiiAQEmEOa2kuDAE8paQJaF4VhqLK4owbuAeQqqok9O/ev09KP3179cc//WUX4f31zU9+9ZMPl+v/9D/9z35jNvsv/g//+d/+d//6X/8rv/+3/s2/2HdtCqHvmr7vrXcxBgiMxorB0AdnrKioMI2IOShq6FtNAsa48+fOWYPD5198ffXxAxXF56b/1cfL62YYQEIIv/r0cXu9EZHf+sFXf/uv/sV/5y/+7uuL1dpIGs5SDGm7JVAQUILFcj4kUQVf+BQHVSFQg2CRBCCm5EpMMaXIqBT6nogMUUwxb6wQh373+ZNN4WReyc55S84bsnQLC8LRm/8gtioHRzcTYAQT7umnkXwjiPKYF3ZQXrdI9BdajpSAYlAhTkZ9VovCI+IOeQXhbR6K0dtbgLKKCmi28UZLBwAAGUbXklEER4EGAjByy9QnowhH0CQi6A2nVJY+pfjNn/3sD//kF//tH/2Ln/7sl9//wY/+V//J/+Yf/tEf/eM//qOz0yVVs59drf+bf/iP/9s/+P/9xqvn/7v/+D/8a3/532qHIYYIoBxDv9vX1dw6a8gsT0+ZQZFT6Ic+oCqiAWbm3pBfnJ27sjDKzae23e6HJH/88z/b++XpD3//H/8//m9//Kd/uDg5/Vt/53/yJ//Vf536/uef/vC/+Yf/9LdfnfyH/8Hf+J/9nX/v4vmzy6t1DAMg5FiM9Q4QRGLfNWVVqrAhyjXtmSOqEkIYOskOlwgp9H1bV3USJqLPH79J+x0ZLatVXRWVs2WZazFOpeIe+lqPyQSZXLA7CSCHWnSoD5HGh9wDX1Bh90aBigKQkqQUlYhoXAXLgESUwzojyyNllr59AxBpqnMNU6QsM+aoXXNKByWgHNyAlB+Kx8UlBlA5hdjFFAtVJCJjby4//Ys//en/5x/9s80w/E//3b/xu7/7ez/6879bvXj19/6r//t8Vv9f/s//pz7I73z/q25o67L+H/7JH2iz+wu//7uxDyIawhBFy/lcY4cggY1xXjgBJG8IfSEp7btebeHnszC03G9Ts/v5v/jZ+5tLEXnzox+/+P2/+r3f/h/92c9+0n7+5eJkdfn267O60tIqVM7g2dmL/+P/9f/9//2jn/xn/9H//Gw+2+kQAaIwiCBz6aguS2OobfaFdc75FFMcAgJ4XxiE7dXncr4YugKQcqhYmVX447t3zXaNmiwZg2QNOmet82aqaXeIR8B9KOgW57tDWaSjsBU+WMGjd5jlbs/HvzzJQAeqI4AgDKGjMCAA4RT/ArLW2HH5TUYT7oZkbi2eKbIxbmifE090tLtvKxCJqCbQnMEI+agAgaahGdrNvCq9NRzC1cdPQ9//1g++Olmuvn9xUgpvv/nVqzff++v/7t/6u3/37xZVbSx3+2ZR+b/1V//qq1n99/7+35XY/c6f/wtdswshrl68VJT19aWFPCgGyJkdwEn6oeua3i3LpMrbm9TsfvGTX2F1+rt/5d8BEikMlEWr8Ye/+3v/6O/9v2pP73/+E0/GFX632fzwN370t//mX/v7tfmzn/zyf/+f/xf/2//kf/3mxYtkDGxv9psNCz9/dlG6arvbhq5PGKyxwuy9r+qZoOnbbgg9EPlq5ooSCVC0C0Oz36w/f5p5e3p2IkMwQNZZZ8k5Z8mmp2tVHrz6Ixv0QIvJcUYAmNQAjS70Ubj1gGY/3p5koKwJx4wM5b7vtO9G2+q21oU1lMiAMWSMIUpEBjM7jUmAiDnxHhBQkQABVWlKQmGFvFWs4WmJh0JeyXCUmQ9AwqndxnpWGLe/2dau+N3f/XN/qSgl6ub6htvd9g/+YffLn/z7f/63Xy3KdogGaFb4i+Ws9nZzefPVq+99vrx5vt4SqffeETlXoi8UFIFZYkpMDDFFUQ2qEdU7RwAppM/vPm5uNue2vvnpn1FpXT2veR6q67/yV//mP/r7//U3f/wHhS2HGEKXzpcn/+O/+Tds375Q8+x3fufTdv/3/u5/9x//R/+Lqq5S33aItizLsl7fbEIYzs8uYhjSEOanZ9bZENNutx1isNYigiQGr6JiwXbtdui7wphuv3u+qOanJ2EIhXXOucKXCKTKlFcTHjHNfWo+8KaOwx2Ih1IpOKaxjqlIeFdQfRsD3QWzp4OgCDD0rF1UaEQUESivBDGUVxhaY6w1RMYaNMYYoiwUkZAwLxgDIIZxkVn2GGky4BQg0RgDQwIQzfIADwkiNO2PmrwgwdnZWbYqAMzi/GIY+tSm3WaPHfz+mzfknSurwrnYtRzCi+UqffW6mFV+VnXt3iCmoTOg5LwpCxUkEEtGLCGAhKjM1nthRmXj3Jsf/OD07GK/3RaFByJuuvDLP9t9/VNYPv9f/vt/55+slpfXmxSHk9nsL/zO7xTK1x+/eXG+Kuerf/svv9hstl+//eb1V89ndQknp/0wvPv6LRp6/YMfWOMhBe7Dvm2ur6+7fgBrXOEJbBqCpCiaVCRwAJDSuV/uttw16flZPZ8hErfWO2OKUpAQs1TP7/Wt5XsH+jvw0VO0Vj3EYnF062Dywb8zA91FGyEzYw5vuqIqYJGEQ4gikVPIKRVAZIw1hqy1xlhCzZuuUVZyaMgYQCBSwhEiIgLKSwGzUT1GaVGEsrjMyBDnmtkICsoixhAyxzYSYVlUwxCs6hAlpKhIVFVeQDhx35NIEum6DljIEZVlWVdINg4DITCnYRiqalaVlSlKtIaFY9/1fSsphb4DFednKtzttyUBOTerZxYwIZIhKY0oqfBw+f5ssfz3fv8vDYrCA0kKbTP03XxWg9HZallV5qvf+L1uc/Orn/y0rErm9PHDp34Iz1+8vPrwMbadQTLOdUMvqvP5XA2FlIauS4DFbOFS5Yh2+11pTZ/089XVyawWAAWc1bO4XVvvTF0rIfDtIptjUj8VfHiqjXtlIhzvbTqqoLtK7DvZQHkwWXcS0r/5l/5SOaz7EPqhHfpuaJt21+y2u6HvUwzCEAdRlcSKiNZYY8GQsba01pBRIoPkcr6vMUDgkMQQoFEiA3llslpWYERVlOzBqwooqxhVBDRTFbbEbK1l4cpY7YZm31SzxeL1BUdGoKKatbu2sztV9XWBCirSdXtCsM5Yb6x1fde1+x0gAJEpfFEVufZPClGJyrpWMMRBhoCAIUQsy9lswSyxj97XBcHijHZNI5u1qmDhut2u321Foi+L2Wrmq8oRceqXy5mJi13TCOhXX70Uxn4YCueYYIisCovFgkVCjF3bxphYxNU1AVrEOISh2c9OT3sRaywiSmBQKbyzFl298GWpI6B/h76ZgA+JfZe+jzNWNpqO+nn82gPLftkLG7ecQqAf/vZfKLCXmJTTkAYOQ+z6Zn+zX293+13ftaFrtrtd0zRD33ftXlUQiHCPhGRIlRTRGlOUrqpKbwtrjDFIaMiIAiihNQBgwGT0MDOQMKgZ3TUVFWsMkSG0IUQVFVRX2PnJbOiHZsulnwFJir0pbVWdGzKh3YOIqBZVZQmMAWsNIQ3DwBJFmCXt3+1DisYYVEOFL+czQ7aczbvdRnhQS6Z0/dA7SIuLZ6EfgHWM0RarofBDt13v1yVF40ltNZvXdTUz3hpEGFqxdrFaLU9WSSUMQ9M0cd8PA1tX1rNZGMK+aRJzTKyQ4URy2QwKw/ZmjazzqhqNBdX85lgD1plitTTG8AGCzWnBeGCdR1aE4WP2MB7lZiAAKonebkD/LQrsyzUSVRWQAEkQ2c/V1lCKQa2zQSZ6xoPEIfbd0LWhb9u2CW3bN23bbPu+iV0IfT+E0A8hDCGktG27/mZtvVvW9bwqxyoIBpHQOl+UNZKQEKgqqlJeIpSNbgIFYUFrAVBBjLEIHFgB0Pu6rr0qKoOocoqMaItK40CgYCx5SyA8dJxirjLljPXOgSuByJd1s9/dXF5ut83y7AzJKuysNbO6YgAGEGU02KzXQfTk/AIVLFKMTM7OZrOhrYrCcxpSCmTQGANC1az2s6K9ukp9C1WpAChKANYYS7TebotKiYwvXI31ZrNVUOZc09iqKnDs9yG0TV3PZkXhnJOkCRKooAqh81U1Pz3VMathtIInmUK3jv1dHppcsENM6T7RdYw5TR7YqMue1F+PMNCUEgRZW+hYrjOvtgMG5bxUgwwZAuOgqP3spGABjiosKSlzSgOHjvswdG2MA6sAonDabC7/+T/7k3/xz/7s5rqbzfysMN5bY421brFYGl9aQzBlr2Q8CxGnsDCxiCpYm3f8JTKGct4lq7Bw5CQJgLyvSkN914TQuar2VQWaus06dC0azZWL0bIwEXhADDEo4urizBQlJwldSwADgXhvyTjnCFxy3pRl3wzdzdbVVVCEFKALLMJBMDEpOl+QAQT1hSPluN8XhUdJYejKulZmAnWEJ8tFDEMfIkuSwCJQliW3XVLOrrYzzgg2+4YICNFa9K4ySJKYUzQIztmynvvZUvOqvIP/NPHJt0mNjNvR3dMOUYdclfe7Wk73942f2FYP3QEI5NINBMRZ+Cgwc65FBkYAyACSA1X0DMJe56ACKvMc2iJCImDm/dVqdaoJ//t/8odDGnhWVOydLazFopTArEjgKIf0QcFkV+2AYQDm1Z+E5FxFZFAhioS+U8Ek6ry1RJyGrgtdu/P1zFc1xxib3dA2AMJRjbXWWSISUBQBUY2cUlLQoiwQMcbIPHAwDhWcT10qiorIFFVZVIsQoyIWZanJNtsBAY23xhmVvPSdVaNyVCCIKQi7skCxfds5a1k4SbLOnqxOrm42Qx+McymlpulS3mZK1aEiaAxDSNEWDlGdsWSNMidlyvnnhKaqwLqxFPIYdj4QXZ/goQNPmLtHjnllRFIeGkjHMNJBCKmqPVhDt4j4A+mHCGAdGEZRQiPCiNPiHQAAkDGyqmbKSlMEQAFQzFlmoqjGlOdvfmD+4l+O17v9119/nRSiEAgoQ9tH0wQuUNR6ayZ86xAgHNPMvLUSkwqnmGsiIwsAs3VlMSv7tuvbBg0h6mw2s/OFgsR+pxzIAPdsjMkFGMASISqhIpIzxBRj6rq2LEvvXEwpz4khoyic+iSqxpezhXOFqqgmEakXJzEETpE5EhoQJlAlZ5wz1hhWL0kEjHEEFIYeWK1xIuK8nS3mu30fQs76TzFFQBIRZ40B6EJHdipuIkLEQhy7Qac4lnWF4pgDKDgBvnfI94B9juJl3+qa4R32EnhoOk3tybXxB0Bh5Eh1CEYNiiZFVLR6zONjGhwIZjhzTPlQVWBBEGRFFlVEt3j1vd/8t/5iOz85+fzhc9+0cUhodOB9H2U2m83qkiuwNiP0OVozBj4MoSVUa4yxUUmJCciwUOEErSgXheW8YgIV0KICt60RNtag+o7YuKkqLWDe4ZZyHU9VER6Goa6qoixNSikltglRnfPM7I2E0HNvXFEDIFlrvKixRVWnoWdmSUHYIIL3ngzEGMAIgZM+KDMZJG+NRUwchsGS9UYQupyTSERkTEqMANZaUSZVY62o5FWFmiQlNgiSGEEFEIsyJ0nkVQ5wNyb6GDWf5Bu9W55lPHgURVB95NqDiHly092DcCQFyiVj0GgO6lKaErP1+NRDrpiOqSXjJnUAgKBICgzCaKvl6x/8SMgXxTcfvvnV9uYm9SlAbLrQdMN8Xs9ns1ldOWNA6XbLagADSmO8XlCSI1IRg0Z1Cpi1ja9qUxQ5vzH0Qxo6JGAAICpntaoaY5CIEJVTXtAOAJI4MTtXoLGGjCsLYU4xhmEgMgpojK1qF2PU1JPzsQ8qQsYCoTPGIARmMlYVJEYZokq01nGMgJIkpZQUgFPKVo2k5AxZghCjIwiSmLN5Zw+VIYR5VP2EbdNxGxaz2gCqgCDZugI1t8txnpAQD+3oRxlr+pz/QUA+GMMHBPsYVTqOr33LXhkA46oQ0bydKCBaHQPnpMeeoR5gZRhlxpjtgaiUbXElEVJBN1s8f/7SCXgkY427/nwlKaYo203TtUM7G04Wi/mstpbGKE6uJ4NEiCwSUyQiYDXWAyGSGYYh9F1d19mqyGLXgHpvjbWJ01jXWTWGqJjquiZrA7MqhxDiMMQYBSjXvhIR56wkjTH6SqxzIqoCPi/8S1IYA4Qh9EDIiRTVO6cAhnDoWwVQxTAEQiRFFNXEbdPu24aMrcpZXuPknJWuQyQkygul8jpaGYt4Ug6bK0DXd6vFbDWf5d3T1BhXVN/BWL7DIg8/PEZu/bJ+e5gocmsDPTz1lq9xtJ01R07AyMgcYHKUS28XU49lrkFzOcsRiQRSVAEGUCVwlVmemYQghIYcgLm+/Ch9jKwhdG3bdU3/7OJ8uaiRjIwZ1oLGCgAR5biJNZbHOyRJQ1UVvqrjEAyCcRaAGMSoknWUzDAMzpimaUII88XCV1VMXJLrhxZUhZPEKOb/X9mbNUvTXelBa9g7h6o68zt+n6RPaknu7lAbG2NDEBjTBMZBg/EFFwQR/ALuuOMXcAn33BIE4SsiaIbAmKANuO323O2W5ZbaaqnVkr7hHc85VZWZe6+Bi5VZp97zDp+coeG852RlZdVeufZaz1rreXKTMnOqOroCIqlZFW26Vd900zj6VAEwpRzsxE3TIWHT5lql1uqmFbRpGhUC4loLgtepgNh4ux22+6I21mEcxvVm48EN7zCpaZDcEjInAI/9hIjcjADUfRrL00cXm3WfmYAQcuamCzLrZSnR3+Nqjtf1gM7c29HefGEUO+cK2b2/HVXQ5iMdl2oXu5lPnftNl81o9ilzeXYmO4SjUDrqHghkM/9zfICY3AcACsIMJweEtO5O8QqZE+eUUpObZ59/dn27Deqgcn3riM6pa1smYDNVBXcndHQicoQilTm5QSnFTPt+5UESQkQpQ8qZKVgHmTjo7mqt7p6ajEzJQGIk2d3VVJQoieo0lZhX7vuNmhM1YFQFuvW55UmmCQH69brUqmViRMSUm8TEtQzjOIBZSrmWCTEa58VEyjgFmzgU3m+36r7ZrJGQiME8hnvatos2zpRmEiZEJGRzv7m5ubq8ePz4wfWrV9X1pOsO3zYstBb3Vve+GR2ZDi7NPsd1qyPHEjk3RsP4IdJ9s8x1VMp4Zwx1bI8+1w/CzObqms9dzRgu4A54nD9P8IjHtzC3kkVfHlDChGACKE3fnxGn1HTdul+dd6tT/9EPX7x8HS7tZruj9Ors7HS16jhIDN2i5YzithG1Svi+tmmY2dQpkRMpQMrs7kBYRUx1GIYyTUi47tcpZ1dVkfCRue1OLshf3gy1qFkdipSxcnJP65PT1HQptYDoyE2/CT4GEWm7HlPa3bxCIs4ZEHLTEtGwvREpjOCqUgsTiikl7piK1DqOZZrW65WIMLGjAwZ7pBE5IjAjMyKAOgowci6luuujR49Wm7WMxZH69coPeqMLlhjw3TuDnvfV5+dphsM6H+IbRIRZdBdnfcp7NnFkQB+OsxavEzd50OOcJe/Uj3Vd7wI6B/cgug5oaUHGHWP8LSEYOiIR53Z9llK7yu0Gm9ZT0j/8wfNnz52oCLy+3RqAEzLnSWowrMyoIpG6mypQSikjuZkhspkBIecUMnVSZRiH/XYHAJvNxt05N0SJkIyp1DG1K88NiKwrDa9e1qKYsxIj0qvr1zfb26985RPPOTctgIsbNw1MpWsaVeemW52dT/uB3TPzNFUHbLu2THutVnZ7MwVEVwN3QvI67W9uDKDrutj1CLHWggDM88Q3M2YmRFQxI6KUhmG8ffmquYAdeq1ysTnj3Fe505ZERHtrA7lblTfN514R3he7Ofxp2Y78KEN6y/g+MJXxjmAoivKe3RFcABWAwBNAhNIRHdn8VgsMBIeNFBbOTycCNDBHcwxGQjWsSJjb9uzyCpkxMXES+e7z5y+Bm/3kgGPXdpu2VxVV88RVlTmp+1RKbjogNlXwaB9hRCROKTXTMInU/e3tq9ev2351en5KAIicu94cxEzB82ol5lgw5dScYNrtSqlNbgh5fXomqi+/+Pyf/9N/8sk3Pnn49KuYKHctcyLmWqagSUi5h55MChEkJqmigKlpRQZXRXdkRIDELO6ceLNZr87ODcHAZX62yQGIMnPKOROxe7CFWwww7La7abt9JaoI67OL1dUDA8KjMdD34YaH5T882R847hvWu044mMf9LOx98ADMHNuz/1FCshhMPuSNURrQ+T5nUD0yQgWkeYQeHTU+iDugIYU4QogfQLA8JT47v0BmStnUxn/8T25uR0hZzaZpUlNzE1XAnkhjb8o5MyeLSr+KqTddAiZFqqJuOo37Fy9ecLM6Ob9Ur4mZc4ucrKpqiHwkIgCtJhUR+76fpsnMUQ0dVpvNOOye726//wffN6fHH38y7oLlyRHBTHNmBMu5Ea2qBd0QjMDBPDcNnmx22626OwUhreSmuWg7AVdTFyvqGjAOgkd/cOKZG5cQEX2eU6hIPOx3Tdf3Jyddv45aMx7PDC4b2Qcs415Ny44Cj+Msaj7tvd7nzpjggES/8yR8S3MMLQJgmKdG4sbxwOhhs7HN/6UFAZoZW3F5X3RAZENAAiJ0Vnc3BwPvNqsLf6ylvHz2fPv9f0FIOWVzEgVzCBEnJkJiAERGJCIkrVJUmq7x2bzNTaZh/+LFqwp0eXWhWh08r3qkhEQpkZlTblO30lK0qFECK23bBg9V0zQ5ZzQPNHi1WX366c+abnVxcSHVMGVXB/Jx2OfUMBMhxJQpOYCBm2kVBMgpTVKBiJvGiDDM1g0Aa3Q7QfT8oYEwMyEQAjOFUoe5Fq9eJ3Br+q4/O+1PTzil4Jq9v16/ANvuEeTy/jMdzJ1hgZLf79zC5t4fPuPR/8+oupujRkZ2R2UNCATIAERHzgmBIt65K3cc38kMNYa+ACNRNHcQYNeuN2eXT7/6lZPzEyZuckuUqnoom8QAnroHfAJB32Gam2BdIWQyszKN436/3e43FxeIkBDW/dopza3/xN3qJHebzeWTtD7jJqe2RebwAW3TEDMjJaSEXMdJHfqT0+fPn9/e3qqY1Aqo6AYqWieppU5jEIy6u4MToKuKKkR9R11FHFE8dCQRAYvI4RFMISDS5ERI6AsntRt4lWpuTp5Xbera9dnJ0iv8ix7vBGjeifYcyqCLE5ox3Pdd+R1I9PFGeK+O7/GhYBaxIVh6aSM0RiPAmQ0IHXz+YbkHXFzUAksfqEUQAIA4GSiCsTETtm27OjnfXJzby2tiJmI1LaUUFZEKVVar9VJ802nYN22T2lYsWqtIq5RaX97uPDV92+WUmyYBICMZQIz1M1G/3vSbE2TevXwOVhiQc5OqEqfMZMGCRNh0vYpyTqt+c31zzYlWfV+rgEMOeRsEYHIRc1OtViqAEROBF1NRFRNEcld14MReatTawByAmJOqJabEyEE+YQ4GquruItIlPjs9bfsGc+rWa1eFu/HkLz/u1nRB7N552pE9OSDYUWU27OCdBgcRRL8jdJ8zw9iKFgOCmQdhRqcRbcGCMOabESMe8kNXCeJdwgmRP+nSNXlsQ4hIiIRkc+7Pzapf7/IOEYP7vqoOpegKcmIiNjcTZ+ZVv+bUVPVahRIg0zRNu92w2w+XD5/klIkyUUNMaobMiFSL1CKTw6thj6ZmReqECEQcfH04q6KUqQo3fdd3LppySuvV9c3rnDhRAoRSJy/edytEciBEYMpVBwBTN1cNoQxnMtBSqgMCohgUdaKMUgPsCJGanHIIY826tO6BTwHy+vQkJ9K+TU3zpaWJeyfcLfxSaIL3uKVlMd6CDucOH7/3Qn+bYOreu86vcZj7Q2ajmoURw2Ef3x0uWdjM9ekHeWlf3h5m9qnlOH7L2XGaqCoy5yYzB5fQHE7WWhGxaRoAIA6dAjBzNHf3pm3UfNwP0zheX1+n3J6dnQO4VAFEhsQpq7ijmYNUAdgZDKY6jnsVzblB4qbpzMwIx1GHsUzF2/VJ13f9asXcpLSSLNvr69OzMzPPTGpSy8DESDiOE8dD4O4OYjbVGjhPqTV0xQBZQp8FIMQYEFHNEmImRjRwJ0YxFzMz8CrYtUzMiE68EF6/1/280xd8qDbx1gVmnO+DZno/iH5vPfV4fd/8/yUePjSgLaR64U98aSCKcyEYaBdFeyAAizddTNDAPMjMow86el3jDeISpmZF3ciBQwZ8qZKQmjigKgR33X53O031yUdP29zsh6GWSUy9UM4tU3IiA8ScpJZaSi3VEaqagYKauNRSp6lGD8lqc5YyukjKbc6dI3T9enj9Yhr3KeVqzozBoUZO7lrVEFHFtZYiNRh4x1oQWV04N2rRvGHOZGiZ2QwQObhZKca6EatVRzUAF3eH3CTTmvq1c5q/jnkUb8583/Y6xxWFX9R4DidHA+Gdd3jHaQe7fKOd416tJEAcn1u6lqrE/B4zxcbhmg5L8WKxs6Aem6nrXRfTcQBEomP82n0WcoueJIyh6eWTz8IcbipV3Q1AzA6ier6Iv6hUM5vG6fX17vTiqtus1LXtGgAHYuBkbmUciqrE/EatAF5LqVUqgKpZGQl9sz4hom7Vp5SQOAYFMuegbXSEpu/3u/3pKZubikUzhoYgIaK4mpuGrJ2ZhzhQrebeJBYxNUVOKmpmxOwuzKwKZsaMhKRmaiZq7mCh60v88JNvP/j6t69vXgLx4Rs+POH3ihgf8B/vs6dlWefAFuEdPWXvPN4xF/ZGPAXzOgXPxtEt30Vycbs221aETQth9SF6Aw4+NXc1V8Bo9cEQDzdzMVETFV3CLwjW32U3dAeoZkVq4zlMl1MCc1M1MwMy81LKbjelbnVyfoZgiGBuuW3UAYlTZsuO45TMKpgpVVUxH0tF5pRSajarnBMlbhIwUc7ogNQycjQSheIzNe2439cqTcNqoKahABUxL7jrXEcmM7GoFCFYDJ/HXxi9GABQInNCCFkzZ05gWs1V1TUeDKtScL3CBEDSEOgbDYNvLPIvkp29b0fzI77xJTPHwwTxvSD62L29oVh479JL/BQvWqwDj+5+0Tc1P3JSy6zyTMU6/xoXtCt2roOTUXMPHlaVWquIqIjWGn7hrurrblV1lLKhVS0VczbRRIREJqamAGiiVerm/BzB2cFdkRJYAOVeSiHArm3NYdWvFGCqVXVWWmAiBKv7/XC7I+HV2Skzg7uJdKuVajFx9qRuRIhNM9WamxRMru5Oy3asZmJWqxgCMlkVJAzULmbl1LwhUtfgFkbEpeo0k+AHH0nsTXWq2G8+/+L6u3/wN/7Sf/jXTk/PTd+EEN9cry81ow/saHcvXJgL5sd/8Rq+1DqOt0h6XwoWFzrkcI5oCIpgeCAKgQX1idEdOkYzl4ZXBzzCrmdONUQMYVtAwNDAEbWx1qGUYRzLNE1lEpH5m3LwWBXT7TAQM2IyRalaSlVVByd2A90NA3Bab06DCVnNTM0dGGe1SnBFsMQUgpx92276rm/zum+bzATAzICeU9s1KwDQUhABm4wpiRZzNa1SRmIU16AMNXATkaULVlXdzBHUTUQBQc3MjWluxHZ3NSsqRMTEmROAp8RE6IgamkBigBits0R8sumvR/30+TUi84ztfSjOPWwj/1IB0PLi6OdEuNvK3rDLe9f8cnaO2SZwDnls6clGnymh5y1sYYldnCSaG0Uw/dYl51/O7UUh9OBmLiJjmcZpmoYiRUM3wyzmDMHN9/uhVms4ucZkDzi6u7hZFR2k9pszSowL/40HaQBQzqmUqdayOWk4pXHSlBNxit4/EREzQ0Kz9ekZt23qe6912u3XqzW0rUo1d9HiIgiOCCpqCIkyGsQVArkxM6SAkYyIxlIAUc2bLoVKBiIWEXPjnDOxOFSpTWJmCjJuVV08EmjVzcnZg6vzX/9T/9q/+xt/9Ue//w8muaVw+QCHEvob3+9bmfYvYDVvrZC/8a8PHIRv7W3vfMtZXWfJrA5+6BA20QGDvgvoUB3tLme/M2KAqMvH+YTIBMSI6KClTqVMZSpTDVUuA1OLUMfHadqPe84cAj6UYnSa0blUM8B21RKauqjHq6SUMSVghr7LObOqmEvb5pixYqaUU24aRlQRAOhXq9RkQyMEbjPk1HJmABWVqlEZNgc33A17JEZiX769MCMRcURAjPajqqKm6/V6+bAoRUAxceKZeMJTZmYMKkh3z8xEBO6m8k+/+73v/eBHN88//ye/87f/p9/8zT/88Y8hZM/wXuLy1pK9L7n+suNeCetDZ94FTO87AdEBac7PCZxwHvOje7aJsBD4hrvCWS/xyAXFXRH4PBXvh06WKDAgRwxRaxmnoYqoubn5PN2Hpl6l3mxvkVPuWgMoKgrqBNV9nEYganJ2VwdXlzC/RCF0W9CdGGud3B0JHQQTVim1VDPjxCkn5pQwEbKrmWlqckLSMtZaVLVWjT5od1OE3e12miYjcoKZstfMzCKQM9WxTMVUqqz6vmmbmHQz1RAzRHcgBEZGzIkAyNRVNIIhJjbTsY6FM10+/OjrHz/76U/+/j/83f/z7/y9P/r0M2ciX+Qh/2UqG1964Bv/97ZB3LmB+OGNhrJ3GKwvWMP7Tfl4Mw6NjFlOfrmcARIcY9gQHFhMKC5qQS65hMqqpdYyTe42t4EscYO6k8Htdu9uKTGgi1QDjNlyrcKxJbm6qqrlttdaOWdTRQ6dF2YiV1X3puly29ciVUpKCYFlEmcvqsiJAYsoEanJuJ/qVFW1bTNHH61Hvz9d31xfXlwSkpgTsZPPiYDpNBYxv7y8CKLnxCwial7VzJ1zE1LiWrVpm0RspnNZkbmoAmAVmcx+4z/5z/7sX/iLn/70D1Pz6dXjJ19sp9/9/h8zN197dEZqsAQAv3hx43C8DVvD8pT/gtdCvKOm/mB8fvRzoDIfuujBiI8uaEvV1ue50yAYIk7ZAV1n2zYzNVMRPXoXnyUWwN0NYDtMwzQhOTGkzKGsMTeiIzmCio7DGI8nMPuCf4OjKzImGYtPVYvUIkgp5wYIRy1OBgkhh4awRXg0TaVMo1ZJxMxcipiCqgF403bjWF6/fu0Opi6qVQQAgEhFh3G8fPDw8uoBEeaczBQRq+pUKyV2mnl4ouN2e3NdpiFnJgQkAiIxU8c6TWCyOTv/5Fu/gnn14vXt2ebh5M13f/Lzz17epoUeDt7FJ3bsLT5sBB9czfsnH86fgcQ30Lx3XD0kBNHMgPiAU0XiGsBPyPzNYf+sIDcLMRy//ZxXHDoEEACQKSXOBUpwl6mDRaO8gZnBLBEN0WOghglw1Ho7jacna5OKgE3b5NSC4TCMyFhrMVUkBiZnAqIazLmlsGMZZTdOAI6E5oDUpIwAPk5lPwzsSG3TrNfQNEjJ1YCw7IdpGPq+NaDoju36npHBqGrNbbvd7TJBm/NUJgAnIqjF3S8eXD39+Omw3RJR07bjOKhaLdWq8GpdRcDZgXLicbfd3mw//urHzOyLcqCJqjhx8//9X//72ZOr027z1//Hv14MLx8+bldr5/yDz143bXe5ytXUPHTcZrHHLzWaOPwIy4U71MbxSBrB3OYg451V/Q/rhS12RqHqfs/3qPtM2Lq8an757LHQXe8FYzPrvs84Q3ADEZO57fbjOE27sRQxVR9GETFKjoQGzgDgbuhOaOAvtrdPry4BQFQyZGJan6wVYRKROqlC03cADlITcSa4ubl58ezl/nq3vx11nHJKmNjBx2HcjcNuP4zjdHFx2var1PX9ydqr5rbrzk76zcbdc5OVoBZBMDBt2ly1oBooKJojvXx9c7bpAbSUqWmaftUxp7MHDwjA68QAjmSQzHE/lJSazMmqmBkygLlIffjk0Wq9Gobx4BDUrJqeX1z98Ac//O/+m//WPP3xTz/7+nf+lX59mpout/3O6g9/9qz/xuN1w0WjA/7dPdFfakNvvwqX8tTyr/ce6Z2XuIOknQDUQ7oGFO42Ow8Myebp0TdAdQX3uc7gcGSR8cJD8QzNAYC5AaD9MNzcXA/DsN/urq+vr69fi1me4Qh0jHMRgYjwdrcrtfICRpqIKpycnKRpGvaDQK21uFut9Ysvbr7/hz++GW4fXV42m4vLj7/Wq22ff/6NP/VNc7x++QJvbn/43e/92p/9M9/5tV9Fgu3Llz/47h+8fPkyt+34o5py8+jBw4uHl+fnpw2TKwAlREJOMk0BgyPhbr9rEnV903f9yemJqe59WK02Zq4qDsBAplaqiFnb9dG4IG5OhAKbzcn5xaVJNdVEXEwQsdaaUubcrk5O//Ann1O7+uq3vnN69ajtN5wbQ6acng233/uT59/+6GLdNmRg4D53wN+lw8fu4H0Y9J3dHAW7905+GwfC41rYe68b8riA5m461xmiiEfkNOtyHG54tkOb6xhLUW7ZH49BbHcPwShK3LRtRAmvXr389Gc/++LZs+317SpnVgYAJFRAhATABICM4zju9uPFunfUgAoBlJsWJ0+Z1XUai0otVf/5H3z/f/ibf/vq0YP/+r/6j9rT09PzB435iz/50ZOPPnZqpu2tJ/zT/8a/enZ+2a5XpnaTaX/z9Nt/4c83q+bZT3/6wz/44e2wf/3jXdWa2/Tw9OKrX/vYM5EQEkmZGL2U0rT54vFjL2NCzE0z7vdt23HOVqdhu6OUmUHqUGtBRCcopuoOc72PVuvOwKqKuwWYVqVWqat2rU7VsD05O7m42lye9euTtmkTs4MjEuX+jz79/NPPf/6dr3/0lcvLxKiAS7M0AgbXOMFhg/qFYCH0me8LYO5C9nfGtXHcZ+c4PumNDcvMEKJT7hB6H1L0w8twvgMAtECHljY9P5gY4syFHmaFCKvV6vz80sw//+LZj3/8Jzc3N21uLUVcPUdV7iFfigyoojf73cXpBpzN1NVmhR9CCvlEKVbk8vLBv/1v/nk2/H//8e/9zt/9B3/lN/79rz562DL1MDCDswMmIuxgw00DSDlT27cfffub64dPGNFLefl6e/Hg0e/9/j/7rd/++y9ut7/80cO/+ut/8RP4uE08DWMtE7YZ3Fer1Wp9si9T22RiSsTeUC1THXdqutmci5mqmoM6BAmkumVnV+37LmWqdQrMM0yrViXi3GQLYUVuu/6kX503uaOo3Mcip5xWJz/77LX/+FNRuFxvVn2XGADMcM57A+8/9gtve6b3uI9lVT+4J75DN/7YjJafFyvwuxOODejYCueLICAa2oEoEwAczIJ18/glZkbEm82ZGzy4eozIpWib78pw7o5uMRpkRIgJUZ5fv/rKR08Jk2sBN4KEhm1qCHDY7rqmqYAq0/n55s/9yjfquP87v/33f+vv/d6v//pf+s63v/a3fuu3/oO//O/9xl/+d25ev+yAf1Kv89kmg18/f2aQHz99vNvfTkX+2fd+8Dv/4B9dXj385//se+d99+d++Vf/3K9888nj893r1xOBq3FKKWcC6pq2yU0+ORuHHc0RvzeZy06IU277/TCYgapxStXUVAHcRRtOq/W61jGcRTxsBjBWaVNKRDsvRSW1/WpzkZsVU0JKBkBgiASI6/XZ5mT38+fPuu7mdtJNu31wuj7p2uikAIiCIAO4+d0e8U6McQ4rAtuf85wvCafwuKEM32QTvrvuvNscCmDvvuw9vxXtb45LI9ryN3VFhxgfnRNQg3Gc9ru9qW9Wm83m5Nmz5+4OZu5019wYkbdFMww9f/Vytx+vunUp08xubDM9IwJUka7vQual22y+cnXJ3P7Rs9e/+Zv/238/TWWqv/NP//B/+Zu/9fjqogH84R//5JuffPLRR4/RfBi1juX5s89evHr18y9eisiz69tf+8pXP/n4o69+8vTi8WXb5XQtw25omma1WnFuio7r1SYzVbc0NzUyZVap0zi2/SqlXMu1ipmZmIlWQiq1Nm3arFZMMNRCRGBWq1BKZSyqtlmtHLxMpZivzjZtv8pNy5R9rtoyc1Kw5Hh5enb9+Reff/Eqd+tBZDvdPDzZXJz0TZp9vJlhVNphWcP3HHccQ/M6IrybF+/u+CC5AgACOaABxMhwLPkvApCj48GSfNl9F81sRFciXzY9dzM1qVodvW0bBzCVWb4q/N6s2mNB4gRg4/7mpz/7k6tf/lXPbApeK/LkgEzITKoiwqEpefHw4un1E4IXTy6uvvPJ137y8vWzm5tX291v/8Pvtk262Gwu+tXLz19BpUzp5bNntZb9fs+AXzu7bJvm4vzkwaOH51fn65NVzk2pxcEAHZkNHERUtek6IjethO5quWkMfNhva63d5qLWoirmXquUWgnBVbXq2ePz3DQy7hOymu/3eyRyxKnUrm1z005lKtVSak9Oztu+o5QwZ+KQMEdGcgIX7PKakG9ud+NovG53YsOr25vd/un5etW3RyE1OtNiQe9eQVzUJX3G8w7/eb8BfcAa8MjjIBPhPLCMQPe6aw+b2mx5d7iCO4AuAnUH/WbyeCwIEUANHBLzYHp983q326WYijo4YXMHNQL3qp7UVMpQhumL5y/qtysiGCU3q2XizEAZcVaJJ0RTWZ+cfOWbX1udng274ekwPuib7aMH1fHZ69dtzuq42+59W252n7nqerW63JyVpmOAts2r083l0ydnDy7FCrqDk1R1IM4hlUbunpqm7bqxVCTSWpGdcyrjWKeqDrnJc3FPylSLmwlYGccHl1cPHz6otZQyIeB2uwOA1Wp1ux/MrO9XiG7qY7W232zOzihnSJya5ACIxkThxjFllanKJLXUItb1SFwcn+/Lfnz55HxzebJu2BzIERzZgYhwVho9sps3bQiOgtsv2cXuBgvfAWXCvN7skCgMKHzhnVUem84xzBgmb2YOZh56WFGwX2AgNwAzN6+qVYZh/PTTT3//937/9vbm0YMLs1nkCWJ63F3UaoER3HI+OT391q/8mV/9tT+D4+32i08JHBBEDRMRGCIws7uG1YvU1OfLJ1e1yHB77abdfsrd6vG6H3e7qRQ73Xit5JaDURo5dRfO0J9vNpcXwCllhokc1EBjYgeIkVPcVt/1zFylDLsdmJ1sTqvUWss4DoBMTNPtGPWN/Tga8jTsN+vuyeOH47Bzlcx8e7sFgLOzMwcYp5JSzGVXMR/dVxcXXdcxp8QZKUX/LhEDoaOnlKqP0zS6e5Gq4OzkSoLNjYzDF693U3l81nfNLGKHxA4EBGgI7+FEOI6Q7sKh9xnQcTR+LzIPmNnmhsLQVTHAuUEk7OPtlO1NqjwyQ0bXaDCc6/DRtoAOamYiUsbx+vr1j/7oR5999tnZ2eZkla+vt+MQHHYGIDJNbor15PLjh9/41rc++fo3Hjx5YkSvt9ce8xBuYKoVmtQQUVDMmAohgBsCN31PSYEQK6QXrwj4os17BrC+lsqcutONMLFD3my467a7fVq3zbovw2BVaxm4YUBGcEpEmAy8uiSHruvUtEyTuvfrTVEVqap6u9+eP3goUmuZTHU3TsWgSmXAj59+5C51mBKml69vkfDhgwc584vXt6KQcwZQd5Cq3qTV5py54ZS5aSCUDaLdKiRqDaZxnMax7Xtwd3NIBGhuiJCr2+cvb+tUr843J32XGd1BQQnYkRkAiHxhIFu8hhPE5PDBCj50vEGu8O7tzCG6LhExxHcPFz2m9biHQx4uGNKoiCgisPin2UshhErvVKcXr1/d7rZXV5d9y9OwLaXUWq2OYBXdVn3/8Ve+8sk3vv306986Pbvsuu5mqCI6cgMGCQ0AkVkNRewgIDSrUZmnjGIVU+pPTtqu59UqATWpechsyGpA3erkwUNTv332uSebalklVooW95itNqYcXUMi2jTJ1RpuTYSbVMdh2m6bruPcVpUyjbubW3fo2q6WQepUar0dhrFM4PDxx09TDs4NeP365WazevjgQde2u91uNww5JyRUMHefqnJ7mvtTTD1yg8jIhKY0RyqIBFUFCR8+evLq+vV+P6w3G+acUuNuOhl4FoNnt9Ne7Oqknq+7Lic0AgJmOKyCAeHR4hsA47z0H8jiY5W/DEg8VK7u3NqXp3bHP8dCMnO0OkQkfqiKEGFOScx2+527XZ6d9w398OXzly9fS9Xz9eqjjz76+jd+6eOvfO3q4qLpekstpezIQEQEuTnZdWvevmxTJiAzNwUiDp6vlJI7iAgyYcrBfcW5uXj6RNVyyswJAdURUk5dElHetONw66DUs9RJp+pmVSUFd5iruzPHU4vR8mEA+/0up9St1uompajofjtgbgHSNN6YQRG/2Q4q+vDq8mSzGcZK6DfXN1eX5x999BTNaq3b3R4J29RIFUAyl71ROr2gtgFOlBtmJESJtSBARCYadaSm/VO/8qd/9vmntzfX9Hp7cdGs+oYTg5tMJADuIKNU3Q3jeLHp132bU451wUR45wWi9jBPXeGXrjTAhwxo9kwIh56KOVR6y4QO0MLhn4dd7FDBiNsNu4lhKESMnMzRSpnG/ZCAHl1drvrmJz/58Xq9+tY3v/3L3/7lpx89OTm9AM7oyiljbgHJEYNtUdT45GrabVmFMZmZqszXJ45pDQAUVUYiAAZ2J3Vzh1rqqEKckMgmGK4/n+pojuagVkWryISIKsY5pZzneM4kcNTIhkqpdRhzTtR1xdRqRfAqtp3qxfnl7fZWSzXgL168HvbTxcV5CBuIlHG/e/jwwccfPTUVBxvHfRE5OTmdSgVrqpVaVLnr1ufMRE2EoPG1MYElJkI0cxN35NyvPvn6t26317vdrpgm1wyM1FLDKAAKbraftFbZl3K6as8361XTRhMvkDM5smMMp9MRTjPvbR/Mwu4tM7wHo4xW5hgrtCOndrwDwltV/cM/wwmpqqpipA/Bi25eSxm2exO9urr66OOv9n3+t7o25fb09IKblhCVMuceECtArVplqiJVKhooUs5NWj+Q258nNnNUVc7EnKKSgu7gRkZaKiZ3dlUHAQCMZrVSpkBKwF20qJOUWqUoIic2A3Nr2w5gZkMS0a7rAMBUpaqru7o3rB7zAV6lvtpuJ4N+1cu4Y8Db293zFy9Xq/VqtW5yGsddnaYnjx89ffpYVdRUprrdDZuTE0cqRXLiMk77ArQ653aFmJGC0ig0kOawwBlrVUVPicUdAFYnp6uTjaq5GTgAQZieFwKECtOoqqOXMu73erbuTvq2bTMzQSKyRMTBwOPuChJD/h8wnVjfO3aOt1Nxf+tsWNKr2RP5/bOOI+jDb8IcQ8Xn2PKIWUBrrWp6eXnVrzbc9dX07OqjnBvOCTAB4OSow1TNoiCg5mqqZgk5NWiG0J1Pw22SAVxViRJxIjEwgCYnN53K1DRtfAACR0R1BUdkQvdpGBIzEjFlAFCsTNQ0GZiHcWraBhFMwdxCHC7nXGuN0Ys2N9RkSklNVcVVx2F68ezl5uyCMsGEqvbp588mhfP1qsnpZnvrrl99+tGjqys3Y6Yq9fr6erXZcG72u4E4W7Wh6ACE6zPPTDkxz9wTc1kAYlY4iLyQZvmHYInBnLMDYHxN4IgNArsxCwuKeFXzadDdtFt35WTVrPvUtrlJzsmioypQ3Ls8+81utXsr/l6Cqdm1vNnp5ku7/tuB1RvR8dvXCdg7JURU1bgEIbpIHYdEdH52kdoWORFgSimlDIjqURNxJCTFWXQselDMPDIsN0wdnz/Zf/ovGgJAdzfGpGiEgDiX8AJOIovxNWTM6qDmDkJEmDieWUZsVyuPwYk6MSESOSCRDvux7Zqu7wlRRaZxxNSvz85lGJsmV60uImX69OefTaV+9eJchgEQn9/c/PSzz9ZXV5BhP+wY4JNPvvLwwQMmREKp4/WLV7nv1yenu+2ASIw2uI21Wj7lfuWUeOH+JUREkFkyi1xNVeeurJmMB/GA+yFjomBAdkRQMATCiuoOVg1NvezqvpT1wJtVs+7brslNbsgJAJIYmAPfOYjjdTy2oTfS+LePg5TmXHaY8Zu7Fth3oEcf2AcREzMhiqqp7sbx+vr1bth3/YZTRyk5ubkBggDAMgeECGAeAmNgaG7gnhICAHP09uSM3fTqi7p9nju2QDg8SPXFHdq2RURiIkIPuDo+HDl4alIWMIu5wblYBKJKSMR3ozY5Ud+vUsrmlpu2lHK6vqTU7F/feCIkrOPw6edfvHz5+mtf/waSNYS3u+kHP/6JcTpZreowJoBvfuOTy7MTBANKiHj96jrl5vzqahym5ckzlTpVxLNLTB0QIwIRMnMMdtKMxKG5zYO8tIQpS6KDMA+8MBKSGThCcgpnYOYFABxQ3KSWSaahyDCVTZfXbde2jRMYZViqR3i0fG+v+xt7yjGuM1vD8oOZmeJC//x+lc6j4zCnfGy8CKBVxmEYxmG/30stuemRMszcrhgxMgDC/LPbPAJCAECEIQg1K9sxxTCDctM++fr2D19QEWwTRKMIM5pFv1I8p06AQPEwB1cVNK2YMhCa0Xyf6gA5c9Ow1BjsciMkQGbkhAnzfi8qrqUYqBJM00RIL56/urm5ffzR07ZrEUzUf/wnP39xvbt4cDXsdsnhK1/76GTdoVtmAvfr19eOdPXokaqYqbo5QgUcahmaMzg5c0pMYS7hg2IHOCi6oxvETAsCLow785od4gyH4GJG9kxOFi5LRIIkC/JkqNUnK8NU942su5wa7ii7w/tioDc80AfcT+DT8QIzs7Buesf5bwI/dBwbhVHGNEIVmYZh3I8iYqZEnFIDAOpuXhGQkDxmHR3AUekwoDjnAz4PIhGBRTeZiCJQRvSTMzx7XF79nHPEx8aciCDyspQYKczRCSHIyJFR3QGBKQFIBPixFDmlCNNUlRnVVCU4rgQxRMt4v99fPLqkJovqsL3d7/eX55cIlhK0ufnJn/z0x59+sTo5FRXU+tWPnl6cn7hb07RMtL3dlml6+OSRE05DURV1B2SRelvITq+o7UEBozRLs9EToRlF1+9sWMxEvFQ+Y2j1fpJMwBjIwzzEhYQFYVJRA3JKCqAqVWWsdV+lzXhGM5PwkSG8Y/96w4D8XZ0iUU7H2R0c2grf0TB0uPo7sela6ziM4zSaWgxuAgZFJ5qDOcIyXRUqFnpADcx0zizNnaKkjIQEBADB/du3jZm5Wn7w8fb6OUuJBN5mocwQakFADMZ8iEFmIlHVKA4hJk4AoKpqmsJ6AIGQUrKiiMhY0RxDMUiUmByxjkVVx3Ew09Vmc7vbPTl7uO77V69e/vzzL4AzApVh+uSjhw+uzsG0WW1yTtM4DtN49ehhSrwfxgjJKZFNMFWT9jKfPtIoNyCFBtmC2cYTCkxsakSUmOcv/C4+teVfsRCBw6ChAiNCykSGyESSRGvVmZCAxJJKkAUopv3MjToXxvzemt4Z0L3lf9upgAPNJEgL7P3WS+4bJgaIiW4mpQzDUEoJJx2HRaZppgbqgETuaItCmTsZusXrbe6KW/oe76rDEeo2OSOSipiINR0++Gj/+R+vWjb3KrXhhjkhEgBJlcRBl4+IGLtbpsTM4FBqCWcZcj5ztgxInKY6mFYClzohQKlVTUWFiK9fvS51BwjrfvXs2bPVyebi4nJ7ff3i5asi3uRmu9s9ujp5dHWO7k3fdaveVYftbtX3bd+VcXBRU8NEICZmN8J+8Ti3PZaqhMQJifF4l3Cn6M8yY+aUkt89tTN/yqEmCUu2DBEVxOQeMkCDlDgp4oS1gJkZGqoCFtcyVRxGdUvLd/62m7gzoGPH87aJzSAieIBzd797+3J4wJ+i3dlqrdN+GIdB3aL11ee9xdUh1NXmcWl3Aw82DVgIZeY5zeUD0BHpp7urW5WaOXNqqomqGpiKwdmVb2+m7QtEmMrQZk7IYXXBkuHgECNmiWmhbBJRREopSRURIcTIfWLr5pSkTkCYKFeRcRiAcap1KtNVc0UptW2zvd0BwIPLy/1ud7vd3W4HoLTfX/dtevzgsk0JAPrVCgl3t7umbc7OzkoVNZVSEAGcQW2cRLoTOj3HCkZAcAAPl2/BARyICRaWUzc7MB4sqc0ca/uy9/thWZEATAGRmJDAiRMgoKtCBUUAIockopO+7Wvm5b73m/sx0D2ngoAxbHN02ntiphhuNnUHUx3G3W67MzFwh5DxNldzdzQFcTdAO6KkMgcHCm7Sw9brADO/okdJLoIjNDVRIYSUs5vHIJ9Z6CGk9PCTqQw4XoPrVMUzJcBoe40568MzIKrxMVWD6NFRjR1jjhvMGFFUAZ1TUjNVHafJRHdDud4NOa8wN+6+3Y23NzePHz1AgHG33W63VXS727nLk0cPT9a9iJ6dnTYpTbuBEc8vLgzcVXQqBpZTo+qDlmtFvnicmKs62Wz0cRwWj5gJwRFLKa9fvVqvVm3XxcbGHCO/FE1WhDPv5/ESuxP6rPOIhJgzIjGV0BE1F3ejpnXmIwLWN33Km5XTd5Qy3jQpP/zP20Z2fFE3dYeYFt3vt8Nup2LxVFjwVTi4gRmogwAdPR3ojj4z+M094XF9m6XOQnh5Hjhwt5DW4rYFoBCamMN8VzWvqctPv15/+i/SfmdcFYhSCn1arQLRJzSXVnQUSSml1AB4qVNUbGLAkZhqKQCgqgedDZU61XJ7O4xTbVp8/eo5JSzD0Obc932pZZwmVdnvhmG/ffDw6vz8VES6plmvV6XUqZSLiwtHnMZJRMwRU1YD1brb27R5auszFyOKB2cmTbxLw+K5iq9bpOu6frWihZ1I1aINAYkYZgUXeAvdXZaXDdwJPDNiSuikOkute06peV92dX8LiwLnO089elG0Bb6BBMAdeGhzu7R7ncp+tx3HwdRiI4ugOazQPDYvPEzqOITspIWbMXCJ/DPsKYpvru5ohuRgAKLq7m3TpJSjOqXuugTnCABq2p6lp98cfvL9rowU0klx84RRiBGRoLYsKqGRg4jxcII6AJhbWE1wZdRaZ7kWke04Xm+H/ViQb85O+pYaFzs9O0dVqaOq7ka5vd2v+u7JkwexoV9eXiDifr9fr9e5bUsp87oiOVg1n0bZW0fnD20JWR0DxSSeKckCZ3F3R2LVCgDrk03b9+GoIw8Ll6Mae7rPIffby49ogOAaLAZIRNACCqqzu3tl5i8rY/wC1fgDwVj8z3uj7NhiTKdp2O+2ZapuBo4GrkHQg+hBMA22THgBGDiAgQmAREO3OwC5z3WqAwo+030hmXsVMbeUEjEHD5i5m7s5mkXpFAjB1WH1MD314ec/0KIdagJPPLPNNZxyYkB3iOYbr3WarwVuKmhuOpPVAcBUioq62SRyvdu/vL599vJl0602m5NVl4fdruHcpCwihKxar29vHOzpk6cZEUSuHj/OOW+326Zpzs/Pa60IIKJRVzR1l/JqN9azT6jpIqcACPoHODieZeEBCQ/kQAjgNmcXsVXF+TmxWzIVFakqcyPOzGd1Vx+fWbPdgdHIwDMigAEpURBU/gLHl+BAc7xw1IL4hpGFb3EHs2HY77a3M0cOgLqpmgOZIzgqoOC8PemhyxnAwDXE6MyPBhMCEkODIPufyQlVVFU5cXT8qHncgpqrzT0nhx23aqXNpT/6xvj8RzYMnSRvW0AXEXRIKcGs04Vzq0mppoaJzTQIChUg4jBREaljtde74dMXr169fN213fnlGZOP+4mITs82TUPMMAzT7W673e8ePnyw6lqt9dHjx6v1ehpHAjw7PxeZqYg8HJ4ns+Hm5uba2+7igQbvHxqA4tFx/FjHsIKZEzJFfoBRBPM7wAaBUuKcyDSZq0bx0GcUzQ2ILPQVDBayQnKwGMNCUqIUW8q/hAHhm1MZYT13C/JmHHQ85qxmu9vb/W5nKhGqBA+mGgCAITqgOlS3QxofRS4Fd0MDUFN0NIeYhj7chnmNB4sTB/XOwSd7kHd49OQslrx8FDdzt+pgqws52+vrn8tQG4GcCRyGYR/F2nBjweij4yRVOCcHlyrEnLtuGqeiIiKlyqvb/RcvX796+bLv+4vLC0QILPtkc3Ky6nJiVS+lvn593ffr9cmJizx68uj84lxLlSrn5+exFSLOZLSAZFLHcfr0esKPvkndxooggAWC8WZJMSCGRXYxtj8kDmWxg9oEHNYu2JiRQj6BIOQ4zdzNxGJe1gnckQAIGQmCi8vRLWckwntL/j4D8qVz7z6iE2ADBjgFQfOysETfHbXW3e3tsN/PDFDg7qAGc1blqO5K8ZkhEngzVwBYQic9tJe5gcVmFwSbHqIQXduagYgu9Xyc/+OoahpnR5uAhaXPEZW7FCkjdNRerv26DqMP0mZCx6mORIgAnBIhqimoV5WiouqJWd3KbphqnUodS3n9+ubV7c1Uysl6vTnZBC9mTnS66lZNk5AQsdZpe7s386vLi8z04Orq7PSs7AcpZXOy5iaJGjPXKlUVAcVBVV68urnF1dXFE9NIj+xQgsJFYSIAHlgWCR3QnA6Fwju4+GBFd8nmMgQWpUNyd8hZVbRWW4LX4P+LrkRCsgQ50V1d9sMG9Pav3t7UDlwNB6QoAvtpmra3N3WYbMYG3RDcVI1CPMXcHdAkmtyioQwsprgdQyzQFMxDHgJnjQhbiBwcurZNKVcpiMx3uWWwgByCeIgUjSB6oCG2RFM1qWPVXeGtd49aZ9FxHOcqs2OMgaopMxDznJ8YaClF6lSmUutUZJxGVW2apm27lHJKmYkz86Zvu8REYO5SSgxc9/2qzfny4uz8/FxqlVpPzjYpN/FMjKW6GQIQgtSy3e1++mKXv/5ND16sI97tZQzwIFVz161FMG8WGIo2C2P0wZAcEJb58uMjrkBEzC2kFN9zRB2q6pG24JLG4fKgvt8TYbC0Hjaje5jB3RvD7Drd5mYyd5+m6ebmtk4lAhWbeyYADB3AEMRdHc1dw7yC4GeGENEMY08zA9UgwzMA1JhVNmfztstt35mpuUWpAZfncnk4/S6Wj2cp/CSAiolYrWDVEfMW+7LbfeO07xsexurmYkjEqgoIY53KfqfiooYOqiKqGA8hwcnJigBVfRJpmgYIG06rtslITIyIZiZV98OkoKt+fXa6uTw7QzczOzk9Sw07gKu5CRAiJjeoUutUf/7Zyz1vHl89jc/jh05fvOs/tznYnvc1dDC3aupH5G9hTW/ayvwtwWJV9mbuHESatBRJ3F1ETKPzwNRt2RQ/ZD1w3JH4zuMIfw6xlfn9x3F8/ep1qYKx5nPgDA4hCcXqVt1iwxIzB7SoZAC5o4fCk2M1U3NVMJ8jZgEQQwPYpLbvGlVVmfW570WUR47KEGCGA2ZadKyGRXFSVEycsFs1f/f3fvd//d4/+i//87+26nkYphRT14yIyVtWbacS4jjmALi4cEIP+aatTV3XpJxFNSduUmKedT1rrdNU9vt92zeXV2cPLi8SEwCsVismmkMzs8wJHURc3Keq19e7T5/frL75S7lt1NT97knGo5YrXzahaJskQJsZt3ypUcC9wZsjj3DwqnDY0hgAgvAptkrESLFzzsbsJmAze97xRd/tWd7JD3RsZMcbbKRH6D6N06vnL6apADKAk4NGVj4LoQUZlKu5xUAYwizUZHFvGOZjCmqkGi7HXE3dqpmZt03uus4MRKeQgDw8PfGzH6TAZ6QxAiyNQSJRK+YVyDEBZRVsAV588ez/+d3vn67+xn/xn/7HnekwCYGDW0RXTU45JXcPkXI1mRkP1RSgGjBnaho3J/OcmAmZEB20Si1lt73NiS8fPDw7O6OUozCSEgGTO6gKE6taNQFjcC9l+uL5S8n9xYNHiIwGZvq2Ote9PSFQxWjxsDmTn9UEwHzZAfHotUeCuHM4NSsIHuaCbRHvBQRidoKE2DQMC4b5Ac0DeJ9azxufAQCCqQrZ3Wutz1+8vN3uGZnJAFGWHMDjsQAqqpO5LJwcdxGShRCJAYCqqZEqiIouqaa6V9Mm5/VqhUi1ClEKF3uAQ45C/tkVwxwfLCmesepcSFQ1EwenUuqr589Sm/7WP/red771S3/lX/+O6k5UmBskY04p8cz1i+TgOioTEnF1iI0xcUIkdW1y9PM4ABLhVLWUkpvm9PT09PSk79qUEyNzIiQXqe6emKMbl5nNcdht97v9oNZdPs79qc5QDgVT5Gwrb2KAcwA0qzQvUQPOdcMZibODuuRd4+ihK+tgixGhgwMgWUxLhB0uQZQ6+hHr9/EN3PslIr7RkXj8lN8zIwRwcBF5+er1y5sbNc+MbcAk6GQza4k41gqjaglaEiAEsnm78SW8DWMyUQjtCFETVVcVNWrSer1mpFIKh3zfkp4fgDKbjzvJ3wPYqQ5q4jM45SISOmL7/f7VzXXftInz//x///af/uYnD9ar/biPCisREXJir25M6IB938ZsWlDG5CaJESA7OScSlUwMMEtC55w3JyerzaZvg1RjlkurVeLLDNCZU1K33X5fam2bVs3703PmbAQmszfFRWX07YU4RKvHa3n4zV29Au8M6N7yH1zC3dzFEkci4hKnIwJFm80vcrzBVP+WlblDbOHuhqp6s929fH1TxQ3YgBTYnNDZnSaDIj6NejtN21HG0aZRpmolilWAgOgYcLtX8VKhVikSg91aqo7VDdNJv2lTLqVEfzzMA/l+7HtMDcwJkJkQlswB0I3NyBwVQCIqdBMwM9ve3O73+yalk7777Gb7f/zt36GginXIKXMiJEzMUM3VUkrMOec255aIOaWmaZY4DEIbAdxUhBDX69XZyelmsR5mRnI12e12pZQocEbAj+DjMJYq65OzMk5FYHV2CRSqHvPCzm0Z9/DDD5UB4N5pgQ/h3INGx3+aM1y3JfVYlntORhZPFugdkYXTf/MtjlOu+zHQsVHH9eeGCwc12Y/D81evt6O4caYcfOwOyR3EtCpU9WGUfZFJ3B2YKCVPxEyJE8Tuog6iJoJSrahVjSH4KiJM+WS1aps0TaPU2ncdsZspoSPy4RsMQZNDhchxzjjm/hAzdfQ7BQWN/r2XL19OU+WUnCh1q+//yWfPbrenqzwWAcQGExO4Y0pJTeP5DbwbEFGwggAqmM5oOQAirter3DQBJ+ScU0pMbG6EkHM+dGYGeg4O4ziVSU5OTtT85cvXaX3WrE+qO8KSVLzP/b+ZKR+juPfW7ui1eNj3D4t9fDYc48xIR9BRTCbMvPL3rn98M2Hlb5Qy7m1nDjbj3MjDML16eX27K8Ugz6ZN5mDu1U2rFfHdJLuhDlXEEAFTwuSWCRIBafDQk5hVgSJSRat7BTezqkbMZ5v1uu+0llpq23FKczkB6a5NNtYjSIAQUOdmeFF3NThgUWZWq9SqAfyr6PX1dRXJTe8IKTXbUZ/d7M5PHnLDMtXkM+7BzBGWM1Gk1hqDHETMJuoOIKJt225OTlarLqCEsB5EBAQmZsYAV+KLjoa1cRzGQU4258C4ffFqHKf+o69Dahdf4B9mT773x3f+822/dbz8RyZ4HyH0o9Ad50tFUPaOezg2SrgHJN4LhuaoH8ABn794dbvdT8XdAfPcqB7xpahPkw5Fb4e6m4q4O/JC0prUPZkRISIHIFRlVpao7gqoqoi0XvV936nIVGrb5CbN/WlEhDxbTwiaMDMxxcOqoWag5oBqUGNiw6GKlCIW7OUGZj4MAy68Ioy+ncYXu+GXzJkoNVmrAAIzEhHNrSN3EykzmgtAgKriYOtV33erlBgQ3DylfKh62iFAcw8fhg7jNA7TtNlcNE1zvb0pw7Ban41nVxUZgc3U38XadViwY/9xeJDuLeQ7bSWqrPfM5Y4xKmDspfl1iYE8Ump/l/Xce4v7W5i/SX52dx7AzX6Yqop6SgmZba4Jg5hP1UbR3Vh3Qxk9ismEhAbkgRCixniWuZqaqlU3cReNiRPf9P3ZapUMplpyoqZNTE7uEd6iY8RRMe4eUcVhkeb6icHCqY8qWquo1GUcG919GIbl0wEAO9g4qTqIStc00WbvQIkRAKLlOQp3UT8xqcwEaGqWMnddm3MKFb2UmHlOrs1sKiMiHNq7zGwap2maNicnXb8ah8lU+65dnfel20ikSjP11v0c/hBRHFDE+P1hQvx91oNLig5zigoHIAaCwdLv9qf4Ay7BzpGZwL0rv9OY0jvPeNvipuKlOCHEiEDcUgjridhYdF9kVK/gzHO5gRBxhnwidJjrFKqHFg5DxL7vzlabBrCUkQlXbWYyxIXK09yXrOuwKr6UOwINQwRzMyMADE3J8BMAGGpg0coDC51IEJ4ruBOYmoFTMNCYhPqkSlUFnvlPSNWQyEWiRbtByk2LTAhxS7QgGGgmvjTYBBfANE3TOG42m361KlXUrOv6vUE19tQiUjC5gMM963l7v7Bl6OptAzo8+W97JkREpNl0DkncPCF0VwG583MHfP89u+R7Deitdz2q5AHUWkWhbcIBMCFqUPsUL0XGqU5Fp0P6SZY4GQU1hEeupyaxwahHXuYEsOq6s806I9ZaDb3LnHgOU6MAFEgeAnDKTTMrJtlCeRbBCRoomEgwEKqpoiMSzRtcqaoibnDYlwHAQdSIuI67JmVOnIIXzyAciahm92hZZyYxiMKwqTU5JUY3TTnKc/MXqyKikjgxEwCIhPzqtDrZdKte3Rw8ZQKDAijtyg4GYFFYeCNShmW3ivjv7cU7GE0Y1hsJf4iNLgwXMFd3YO4NdnB3AgS7U4vyBbQOMlOc+0PeDL3f3FXjhy/RCzvspVXVgICTEQERAIrpWH0SG8UG0WoGYAJAAAnRgSyIEgEwvvrgkzJzMwUBh7ZtzlabFqjW4uDBSWJLNkJE0cmKgDnnnDMxmJvFFAoCxISvexUppYq6xm5m0QyAkZSJioiMtcCcpxA6GKCoEbODj+OYNivMCdxEK4ARkZcqLkTRG21z15EaE/d9P9cycQal4ptV17ilQLlqrWUqm5NNu+7NHYwIFJkUXDFZ6pF47uM9rPPRIh2OA8BzeKqPIqK7k3E5IMKee6HPPDp/905hJQczxcDbIhaacSKP3yz44nx/x9ZzFwMdbuoe3nD4YyA5zMyYHUFUSrGpalEf1UexEjU4JphHOA5NjDj3ecBcL4wQddW0J6s1AaiUREBLZGz2RkKR4sgJyWf8Ao9E5x2kylSKAyRmBCulADgSopF5NKSiVBmHYYHp5iJXqQWRmqYbp7FUCdlvnDusEQlrrcRInAKVdFVXbZrcdS2nRMzEHHMT8aEg+tQA3L3WKqqb05Ou79yBIAFHWoPVZHS21AIQmJsf8RjMiw9hl+Fj3lwOjzHWQ0Hi8IeDf4ovbv5TGIPPxYiIinzJ++bYazHbuMp8NVpklY5M8Pg4OLx07+3hfYcT8TyX7a5VVEVNTKqVWiQU/QwQAXlWUiVeBph8juyjwECIuWnX/SoRmdcmQ0I0D9YeiDwrLYwCMVOHFOC1zlMsFJ1AofNsxJyRrHqMdzKzqKtWCxDIwcxqqbP1LP0OU63mkHLr47QfyhklQuTELmASY69QSm27uSoUAFvX5qbJuc0pNUCOTNGeAjjHPSISXWMnpyc5N/MmC6gx4YZQ1Apk5dZnKqe75zse8sPDfG+3Wn4fON8cDIUPPvYKx889LBcEmKtm4EdvtuxQx8HT8tYGi5291yQiC3tfNnjviGTkIBsr6tVclEqVqiJmaoaABzjDwYGCPsXmokwAyg4p5b7tm8SMnhOmhcU87iOsZyY0mWduJIYS45t2MxFVEXVLKbfUiskwFJUZwHB3U1VVcEPHKGio1Nn7zDkIVVFVj7ebpnFM1DWZiTGRW1VVRIg5BaRQbDAm7LomJ46J4tAqh8WnBopoZszcdV1KKTLk2FfdwIkNbBCYuAeKqT2MoV+bN5m75/zuB18GVmalAFiGk45yrkPMurzE72Kfu90u1gWP3gaPLGw5bF6OBS2aF2bZv46tYo6B7vnJd4JRyESJKbEjiFoxq6qT1OKmBjIP4DgdtvG5shP7GLibq6F5QuwSt5kbxoxGjOBuqoAAoVq4mM48ZOI+z5DB7M+Ca5GZ+6YnTiIqk8o8oxzRemRngSsaA1qpMhUOftvlA5YiotqllHMuZdqP42IanjObCYAjurkkTEFw1jV51XZtbjKxx7wYYRDGMBGAu3rOuWlapgSwTJvMISoBpVLrXsFSRoz5kCWHAsBDN9O8zzgctQ7j3ER+hwPdBwPfdFp3C3e0Qx32ffC7l8CxzzIAcA0qHHgDm3rbKvxtIPEDRxArAYCrBdBSiszN2uLxnsgASOZuDjx/4LQ06LiDI3nO3PUpt0BL25TU6u7R2UT0hukslWRABsJZlRcR+75vOIPZWOs0lVKKKRCSmAKimlYRj65Ed0MfSylVHHFWDEYAxKmKqkODTJiYSynDOK26lglSSrXUWF4HIGImY4LcNG0bLLBOSEiACEgYdRU1bVLDiZk48ldaOt2J2RyqSp1sqklX3Z2NvBXxIMAS7c3Ze0T+b+4yERrcz93wEPR6mP+SGC82dGQ3eGdLs/EhwFxXOVRSo9pP7/Ipcbw3jT/YXfycMxOBmah6VaiCIiDm1Xw0c9fooFZwd0tuB7OZpTFck0Ob+HTVt13LMGvKqYkHWMfMxIdBuIOKNkTg4HNHfk45N03OSVW1SilV1YKCoJqJixuImLgRkOlM87Mb91OthBmDgIjIHcc67UrpNx0mbprGqk7jlBNCw+BGGVpPMV7oYO7CZG3b8CydCZQOQYQjoakzc24yEamogc1i6MwRqKqZmOy1jNQ5Z0EHs5CIM9d5NRGB0FR9tpxZ7E3cydEB2CEUiE3n8QxfDIgggA9nmGUCfKnbGSxjinAgTIhSmfvc6+5z+jXbU3TTcaizL81Cv5gBHR9HgVv8HDuI1hB3dKsOwTwXfFZEc2HTooFzicMi20gJ15t+1TUx2W2iUTCK6GqG4+ZHcTFc1PgGY6NPKeWc3X2/31eVUiXoI90BE6Ci1bl/A4hEvJpWMyS83d2OZehSqipIgA7iuh2H29324flpInTynKHWOo6G3iJiYmxWTSnVgOKTZM6ZOWVCMPOqavMe7eDqPEOKFA9vVE0c3bRCzAeUqob7osoNpISmgHhoAw8+bHCPmZboAw7YjAgdQXUeOXSP6d45RDC3ecBsbhfHZfwhDIsOWRce5j3gYC1zpSPcFM4UDBRqEn4Udb99HNzeL7SFEdEsL2dgKqpVrai4iFstXourgDs4YSKIIVF0FXNuCQFNyXS1alddRorubUMAB0WygNpFwQFQ7+4vUr75G/SYkrZSJncQtWksRURqjW2ubZomtSP5VEc3Zw9Yr6gUd3v17LM6TNSamBJiQhfV29344nr78eOpz1mnUh2rkymCKDMycsOJWrb4uAbEmTnLjPiBmmOQVTG5AyaCRBJugRAhx7iSqYO7qIrCbtLdpLBhEXFRU8WopUWv6jwfp642F/As+H6AyN0ccQaubRyljpABa8OINE/+3lExeOyg7hANd/Nih9CnH+weD0LjBgaQiMEAwVndi8fGEenDggy9IxL6/wHPd1Pr10LokwAAAABJRU5ErkJggg==';
+
+    const ACCEPTED_PINS = ['1234', '4402'];
+
+    const MONTHLY_WALK_TARGET = 39.0;   // 39 h/mes -> 468 h/año natural
+    const MONTHLY_CLEAN_TARGET = 6.0;   // 6 h/mes  -> 72 h/año natural
+    const ANNUAL_WALK_TARGET = 468.0;
+    const ANNUAL_CLEAN_TARGET = 72.0;
+
+    const MONTH_NAMES = [
+      'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+      'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+    ];
+
+    const MONTH_SHORT_NAMES = [
+      'Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun',
+      'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'
+    ];
+
+    const WEEKDAY_NAMES_FULL = [
+      'Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'
+    ];
+
+    // 16 festivos oficiales de Mataró / Cataluña por año natural
+    const OFFICIAL_HOLIDAYS_MATARO = {
+      2026: {
+        '2026-01-01': 'Año Nuevo',
+        '2026-01-06': 'Reyes Magos',
+        '2026-04-03': 'Viernes Santo',
+        '2026-04-06': 'Lunes de Pascua',
+        '2026-05-01': 'Fiesta del Trabajo',
+        '2026-05-25': 'Segunda Pascua (Mataró)',
+        '2026-06-24': 'Sant Joan',
+        '2026-07-27': 'Les Santes (Festa Major de Mataró)',
+        '2026-08-15': 'Asunción de la Virgen',
+        '2026-09-11': 'Diada Nacional de Catalunya',
+        '2026-10-12': 'Fiesta Nacional de España',
+        '2026-11-01': 'Todos los Santos',
+        '2026-12-06': 'Día de la Constitución',
+        '2026-12-08': 'La Inmaculada',
+        '2026-12-25': 'Nadal (Navidad)',
+        '2026-12-26': 'Sant Esteve'
+      },
+      2027: {
+        '2027-01-01': 'Año Nuevo',
+        '2027-01-06': 'Reyes Magos',
+        '2027-03-26': 'Viernes Santo',
+        '2027-03-29': 'Lunes de Pascua',
+        '2027-05-01': 'Fiesta del Trabajo',
+        '2027-05-17': 'Segunda Pascua (Mataró)',
+        '2027-06-24': 'Sant Joan',
+        '2027-07-27': 'Les Santes (Festa Major de Mataró)',
+        '2027-08-15': 'Asunción de la Virgen',
+        '2027-09-11': 'Diada Nacional de Catalunya',
+        '2027-10-12': 'Fiesta Nacional de España',
+        '2027-11-01': 'Todos los Santos',
+        '2027-12-06': 'Día de la Constitución',
+        '2027-12-08': 'La Inmaculada',
+        '2027-12-25': 'Nadal (Navidad)',
+        '2027-12-26': 'Sant Esteve'
+      }
+    };
+
+    function showToast(msg) {
+      const el = document.getElementById('toastBox');
+      if (!el) return;
+      el.textContent = msg;
+      el.classList.remove('hidden');
+      clearTimeout(showToast._t);
+      showToast._t = setTimeout(() => {
+        el.classList.add('hidden');
+      }, 3200);
+    }
+
+    // =========================================================================
+    // LOGO DE VICENTA: RECORTE EN CANVAS PARA CABECERA, PORTADA Y FAVICON
+    // =========================================================================
+    function getActivePortraitSource() {
+      try {
+        const saved = localStorage.getItem(STORAGE_KEY_PORTRAIT);
+        if (saved && saved.trim()) return saved.trim();
+      } catch (e) {
+        // Ignorar errores de almacenamiento
+      }
+      return DEFAULT_PORTRAIT_SRC;
+    }
+
+    function applyPortraitToAllLogos(dataUrlOrSrc) {
+      const splashImg = document.getElementById('splashVicentaLogo');
+      const headerImg = document.getElementById('headerVicentaLogo');
+      const favLink = document.getElementById('dynamicFavicon');
+      const appleLink = document.getElementById('dynamicAppleIcon');
+
+      if (splashImg) splashImg.src = dataUrlOrSrc;
+      if (headerImg) headerImg.src = dataUrlOrSrc;
+      if (favLink) favLink.href = dataUrlOrSrc;
+      if (appleLink) appleLink.href = dataUrlOrSrc;
+    }
+
+    function renderCroppedPortraitCanvas(imgElement) {
+      const canvas = document.getElementById('portraitCropCanvas');
+      if (!canvas || !imgElement || !imgElement.complete || !imgElement.naturalWidth) return;
+
+      const ctx = canvas.getContext('2d');
+      const size = canvas.width;
+      ctx.clearRect(0, 0, size, size);
+
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(size / 2, size / 2, size / 2 - 4, 0, Math.PI * 2);
+      ctx.closePath();
+      ctx.clip();
+
+      const iw = imgElement.naturalWidth;
+      const ih = imgElement.naturalHeight;
+      const cropSide = Math.min(iw, ih) * 0.62;
+      const sx = Math.max(0, (iw - cropSide) * 0.52);
+      const sy = Math.max(0, (ih - cropSide) * 0.36);
+
+      ctx.drawImage(imgElement, sx, sy, cropSide, cropSide, 0, 0, size, size);
+      ctx.restore();
+    }
+
+    function handlePortraitError(imgEl) {
+      if (!imgEl) return;
+      if (imgEl.dataset.fallbackApplied === '1') return;
+      imgEl.dataset.fallbackApplied = '1';
+      imgEl.src = FALLBACK_PORTRAIT_SRC;
+      const hint = document.getElementById('logoStatusHint');
+      if (hint) {
+        hint.textContent = 'No se encontró 65721.jpg automáticamente. Selecciona aquí la foto de tu galería para fijar el logo.';
+      }
+    }
+
+    function initVicentaLogo() {
+      const src = getActivePortraitSource();
+      const loader = new Image();
+      loader.crossOrigin = 'anonymous';
+      loader.onload = () => {
+        try {
+          const offCanvas = document.createElement('canvas');
+          offCanvas.width = 240;
+          offCanvas.height = 240;
+          const octx = offCanvas.getContext('2d');
+
+          octx.beginPath();
+          octx.arc(120, 120, 116, 0, Math.PI * 2);
+          octx.closePath();
+          octx.clip();
+
+          const iw = loader.naturalWidth;
+          const ih = loader.naturalHeight;
+          const cropSide = Math.min(iw, ih) * 0.62;
+          const sx = Math.max(0, (iw - cropSide) * 0.52);
+          const sy = Math.max(0, (ih - cropSide) * 0.36);
+
+          octx.drawImage(loader, sx, sy, cropSide, cropSide, 0, 0, 240, 240);
+          const croppedUrl = offCanvas.toDataURL('image/png');
+          applyPortraitToAllLogos(croppedUrl);
+          renderCroppedPortraitCanvas(loader);
+          const hint = document.getElementById('logoStatusHint');
+          if (hint) hint.textContent = 'Retrato de Vicenta aplicado como logo en toda la web.';
+        } catch (err) {
+          applyPortraitToAllLogos(src);
+        }
+      };
+      loader.onerror = () => {
+        applyPortraitToAllLogos(src);
+        const hint = document.getElementById('logoStatusHint');
+        if (hint) {
+          hint.textContent = 'Selecciona la foto de Vicenta desde tu dispositivo para fijar el logo al instante.';
+        }
+      };
+      loader.src = src;
+    }
+
+    function openLogoSettingsModal() {
+      document.getElementById('logoSettingsModal').classList.remove('hidden');
+      const headerImg = document.getElementById('headerVicentaLogo');
+      if (headerImg) renderCroppedPortraitCanvas(headerImg);
+    }
+
+    function closeLogoSettingsModal() {
+      document.getElementById('logoSettingsModal').classList.add('hidden');
+    }
+
+    function handlePortraitFileUpload(event) {
+      const file = event.target && event.target.files && event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const rawDataUrl = e.target && e.target.result;
+        if (!rawDataUrl) return;
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          canvas.width = 240;
+          canvas.height = 240;
+          const ctx = canvas.getContext('2d');
+          ctx.beginPath();
+          ctx.arc(120, 120, 116, 0, Math.PI * 2);
+          ctx.closePath();
+          ctx.clip();
+
+          const iw = img.naturalWidth;
+          const ih = img.naturalHeight;
+          const cropSide = Math.min(iw, ih) * 0.62;
+          const sx = Math.max(0, (iw - cropSide) * 0.52);
+          const sy = Math.max(0, (ih - cropSide) * 0.36);
+
+          ctx.drawImage(img, sx, sy, cropSide, cropSide, 0, 0, 240, 240);
+          const circularPng = canvas.toDataURL('image/png');
+
+          try {
+            localStorage.setItem(STORAGE_KEY_PORTRAIT, circularPng);
+          } catch (storageErr) {
+            // Si excede la cuota, aplicar en memoria para esta sesión
+          }
+          applyPortraitToAllLogos(circularPng);
+          renderCroppedPortraitCanvas(img);
+          const hint = document.getElementById('logoStatusHint');
+          if (hint) hint.textContent = 'Logo de Vicenta actualizado correctamente.';
+          showToast('Logo con el retrato de Vicenta aplicado.');
+        };
+        img.src = rawDataUrl;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function resetPortraitToDefault() {
+      try {
+        localStorage.removeItem(STORAGE_KEY_PORTRAIT);
+      } catch (e) {
+        // Ignorar
+      }
+      initVicentaLogo();
+      showToast('Restaurado retrato predeterminado (65721.jpg).');
+    }
+
+    // =========================================================================
+    // UTILIDADES DE FECHA Y HORAS (SIN PROBLEMAS DE ZONA HORARIA UTC)
+    // =========================================================================
+    function pad2(n) {
+      return String(n).padStart(2, '0');
+    }
+
+    function parseDateStr(dateStr) {
+      const [y, m, d] = dateStr.split('-').map(Number);
+      return new Date(y, m - 1, d, 12, 0, 0);
+    }
+
+    function formatDateStr(dateObj) {
+      return `${dateObj.getFullYear()}-${pad2(dateObj.getMonth() + 1)}-${pad2(dateObj.getDate())}`;
+    }
+
+    function addDaysStr(dateStr, deltaDays) {
+      const d = parseDateStr(dateStr);
+      d.setDate(d.getDate() + deltaDays);
+      return formatDateStr(d);
+    }
+
+    function daysInMonth(year, monthIndex0) {
+      return new Date(year, monthIndex0 + 1, 0).getDate();
+    }
+
+    function formatSpanishLongDate(dateStr) {
+      const d = parseDateStr(dateStr);
+      const wd = WEEKDAY_NAMES_FULL[d.getDay()];
+      return `${wd}, ${d.getDate()} de ${MONTH_NAMES[d.getMonth()]} de ${d.getFullYear()}`;
+    }
+
+    function formatHoursES(hours) {
+      const rounded = Math.round(hours * 100) / 100;
+      return `${rounded.toFixed(1).replace('.', ',')} h`;
+    }
+
+    function timeToMinutes(hhmm) {
+      const [h, m] = hhmm.split(':').map(Number);
+      return h * 60 + m;
+    }
+
+    function diffHours(startHHMM, endHHMM) {
+      const mins = timeToMinutes(endHHMM) - timeToMinutes(startHHMM);
+      return mins > 0 ? Math.round((mins / 60) * 1000) / 1000 : 0;
+    }
+
+    function isHolidayMataro(dateStr) {
+      const year = Number(dateStr.slice(0, 4));
+      const map = OFFICIAL_HOLIDAYS_MATARO[year] || {};
+      return map[dateStr] || null;
+    }
+
+    // =========================================================================
+    // GENERACIÓN DETERMINÍSTICA DE AÑOS NATURALES (2026 Y 2027)
+    // =========================================================================
+    function generateDefaultYearSchedule(year) {
+      const yearMap = {};
+
+      for (let m = 0; m < 12; m++) {
+        const totalDays = daysInMonth(year, m);
+        const workdays = [];
+        const mondays = [];
+
+        for (let day = 1; day <= totalDays; day++) {
+          const dateStr = `${year}-${pad2(m + 1)}-${pad2(day)}`;
+          const dow = new Date(year, m, day, 12, 0, 0).getDay(); // 0=Dom, 1=Lun..5=Vie, 6=Sab
+          const holidayName = isHolidayMataro(dateStr);
+
+          yearMap[dateStr] = {
+            clean: {
+              enabled: false,
+              start: '09:00',
+              end: '10:30'
+            },
+            walk: {
+              enabled: false,
+              start: '15:40',
+              end: '17:40'
+            }
+          };
+
+          const isWorkday = (dow >= 1 && dow <= 5 && !holidayName);
+          if (isWorkday) {
+            workdays.push(dateStr);
+            if (dow === 1) {
+              mondays.push(dateStr);
+            }
+          }
+        }
+
+        // Limpieza: fijar exactamente 6,0 h al mes (4 lunes de 1,5h o 3 lunes de 2,0h si festivo)
+        const cleanDays = mondays.length >= 4 ? mondays.slice(0, 4) : (mondays.length === 3 ? mondays : workdays.slice(0, 4));
+        if (cleanDays.length === 4) {
+          cleanDays.forEach(ds => {
+            yearMap[ds].clean = { enabled: true, start: '09:00', end: '10:30' };
+          });
+        } else if (cleanDays.length === 3) {
+          cleanDays.forEach(ds => {
+            yearMap[ds].clean = { enabled: true, start: '09:00', end: '11:00' };
+          });
+        }
+
+        // Cuadrar Paseo del mes a 39,0 h exactas usando bloques de 2,0h (15:40–17:40) y ajuste residual
+        let remainingWalkHours = MONTHLY_WALK_TARGET;
+        for (let i = 0; i < workdays.length && remainingWalkHours > 0.001; i++) {
+          const dStr = workdays[i];
+          if (remainingWalkHours >= 2.0) {
+            yearMap[dStr].walk = { enabled: true, start: '15:40', end: '17:40' };
+            remainingWalkHours = Math.round((remainingWalkHours - 2.0) * 1000) / 1000;
+          } else {
+            const durMins = Math.round(remainingWalkHours * 60);
+            const startMins = 15 * 60 + 40;
+            const endMins = startMins + durMins;
+            const endH = pad2(Math.floor(endMins / 60));
+            const endM = pad2(endMins % 60);
+            yearMap[dStr].walk = { enabled: true, start: '15:40', end: `${endH}:${endM}` };
+            remainingWalkHours = 0;
+          }
+        }
+
+        // Si el mes tiene menos de 20 días laborables (ej. 19 por festivos), repartir el remanente
+        if (remainingWalkHours > 0.001) {
+          for (let i = 0; i < workdays.length && remainingWalkHours > 0.001; i++) {
+            const dStr = workdays[i];
+            const curDur = diffHours(yearMap[dStr].walk.start, yearMap[dStr].walk.end);
+            const add = Math.min(1.0, remainingWalkHours);
+            const newDur = curDur + add;
+            const endMins = 15 * 60 + 40 + Math.round(newDur * 60);
+            const endH = pad2(Math.floor(endMins / 60));
+            const endM = pad2(endMins % 60);
+            yearMap[dStr].walk.end = `${endH}:${endM}`;
+            remainingWalkHours = Math.round((remainingWalkHours - add) * 1000) / 1000;
+          }
+        }
+      }
+
+      return yearMap;
+    }
+
+    function buildInitialState() {
+      const todayStr = '2026-11-21';
+      const params = new URLSearchParams(window.location.search);
+      const startUnlocked = params.get('modo') === 'madre';
+
+      return {
+        selectedDateStr: todayStr,
+        viewMode: 'week',
+        unlocked: startUnlocked,
+        splashDismissed: false,
+        years: {
+          2026: generateDefaultYearSchedule(2026),
+          2027: generateDefaultYearSchedule(2027)
+        }
+      };
+    }
+
+    function loadState() {
+      const base = buildInitialState();
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY_STATE);
+        if (!raw) return base;
+        const parsed = JSON.parse(raw);
+        if (parsed && parsed.years && parsed.years[2026] && parsed.years[2027]) {
+          base.years[2026] = parsed.years[2026];
+          base.years[2027] = parsed.years[2027];
+          if (parsed.selectedDateStr && /^\d{4}-\d{2}-\d{2}$/.test(parsed.selectedDateStr)) {
+            base.selectedDateStr = parsed.selectedDateStr;
+          }
+          if (['day', 'week', 'month', 'year'].includes(parsed.viewMode)) {
+            base.viewMode = parsed.viewMode;
+          }
+        }
+      } catch (e) {
+        // Si falla el almacenamiento, mantener datos generados en memoria
+      }
+      return base;
+    }
+
+    const state = loadState();
+
+    function persistState() {
+      try {
+        localStorage.setItem(STORAGE_KEY_STATE, JSON.stringify({
+          selectedDateStr: state.selectedDateStr,
+          viewMode: state.viewMode,
+          years: state.years
+        }));
+      } catch (e) {
+        // Ignorar errores de cuota
+      }
+    }
+
+    // =========================================================================
+    // CONSULTA Y CÁLCULO DE HORAS POR DÍA, MES Y AÑO NATURAL
+    // =========================================================================
+    function getDayEntry(dateStr) {
+      const year = Number(dateStr.slice(0, 4));
+      if (!state.years[year]) {
+        state.years[year] = generateDefaultYearSchedule(year);
+      }
+      if (!state.years[year][dateStr]) {
+        state.years[year][dateStr] = {
+          clean: { enabled: false, start: '09:00', end: '10:30' },
+          walk: { enabled: false, start: '15:40', end: '17:40' }
+        };
+      }
+      return state.years[year][dateStr];
+    }
+
+    function getDayHoursBreakdown(dateStr) {
+      const entry = getDayEntry(dateStr);
+      const cleanHours = entry.clean && entry.clean.enabled
+        ? diffHours(entry.clean.start, entry.clean.end)
+        : 0;
+      const walkHours = entry.walk && entry.walk.enabled
+        ? diffHours(entry.walk.start, entry.walk.end)
+        : 0;
+      const totalHours = Math.round((cleanHours + walkHours) * 1000) / 1000;
+      const holidayName = isHolidayMataro(dateStr);
+
+      return {
+        dateStr,
+        entry,
+        cleanHours,
+        walkHours,
+        totalHours,
+        hasService: cleanHours > 0 || walkHours > 0,
+        holidayName
+      };
+    }
+
+    function getMonthSummary(year, monthIndex0) {
+      const totalDays = daysInMonth(year, monthIndex0);
+      let walkSum = 0;
+      let cleanSum = 0;
+
+      for (let d = 1; d <= totalDays; d++) {
+        const ds = `${year}-${pad2(monthIndex0 + 1)}-${pad2(d)}`;
+        const b = getDayHoursBreakdown(ds);
+        walkSum += b.walkHours;
+        cleanSum += b.cleanHours;
+      }
+
+      walkSum = Math.round(walkSum * 1000) / 1000;
+      cleanSum = Math.round(cleanSum * 1000) / 1000;
+      const totalSum = Math.round((walkSum + cleanSum) * 1000) / 1000;
+
+      const walkDiff = Math.round((walkSum - MONTHLY_WALK_TARGET) * 1000) / 1000;
+      const cleanDiff = Math.round((cleanSum - MONTHLY_CLEAN_TARGET) * 1000) / 1000;
+      const surplusTotal = Math.round((Math.max(0, walkDiff) + Math.max(0, cleanDiff)) * 1000) / 1000;
+
+      return {
+        year,
+        monthIndex0,
+        walkSum,
+        cleanSum,
+        totalSum,
+        walkDiff,
+        cleanDiff,
+        surplusTotal,
+        isBalanced: Math.abs(walkDiff) < 0.001 && Math.abs(cleanDiff) < 0.001
+      };
+    }
+
+    function getYearSummary(year) {
+      let walkYear = 0;
+      let cleanYear = 0;
+      for (let m = 0; m < 12; m++) {
+        const ms = getMonthSummary(year, m);
+        walkYear += ms.walkSum;
+        cleanYear += ms.cleanSum;
+      }
+      walkYear = Math.round(walkYear * 1000) / 1000;
+      cleanYear = Math.round(cleanYear * 1000) / 1000;
+      return {
+        year,
+        walkYear,
+        cleanYear,
+        totalYear: Math.round((walkYear + cleanYear) * 1000) / 1000,
+        walkDiffYear: Math.round((walkYear - ANNUAL_WALK_TARGET) * 1000) / 1000,
+        cleanDiffYear: Math.round((cleanYear - ANNUAL_CLEAN_TARGET) * 1000) / 1000
+      };
+    }
+
+    // =========================================================================
+    // PORTADA GIGANTE DIARIA ("HOY" Y "MAÑANA") + VOZ EN ESPAÑOL
+    // =========================================================================
+    function buildSpeechMessageForDate(dateStr) {
+      const info = getDayHoursBreakdown(dateStr);
+      const dateLabel = formatSpanishLongDate(dateStr);
+      const parts = [`Aviso para ${dateLabel}.`];
+
+      if (info.holidayName) {
+        parts.push(`Festivo en Mataró: ${info.holidayName}.`);
+      }
+
+      if (!info.hasService) {
+        parts.push('Hoy no viene nadie programado. Cero horas.');
+      } else {
+        if (info.cleanHours > 0) {
+          parts.push(`Limpieza de ${info.entry.clean.start} a ${info.entry.clean.end}, ${formatHoursES(info.cleanHours)}.`);
+        }
+        if (info.walkHours > 0) {
+          parts.push(`Paseo de ${info.entry.walk.start} a ${info.entry.walk.end}, ${formatHoursES(info.walkHours)}.`);
+        }
+        parts.push(`Total del día: ${formatHoursES(info.totalHours)}.`);
+      }
+
+      return parts.join(' ');
+    }
+
+    function stopSpeechReading() {
+      try {
+        if ('speechSynthesis' in window) {
+          window.speechSynthesis.cancel();
+        }
+      } catch (e) {
+        // Ignorar
+      }
+    }
+
+    function speakText(text) {
+      const box = document.getElementById('fpSpeechFallbackBox');
+      const txtEl = document.getElementById('fpSpeechText');
+      if (box && txtEl) {
+        txtEl.textContent = text;
+        box.classList.remove('hidden');
+      }
+
+      try {
+        if (!('speechSynthesis' in window)) {
+          showToast('Texto mostrado en pantalla.');
+          return;
+        }
+        window.speechSynthesis.cancel();
+        const utter = new SpeechSynthesisUtterance(text);
+        utter.lang = 'es-ES';
+        utter.rate = 0.95;
+
+        const voices = window.speechSynthesis.getVoices ? window.speechSynthesis.getVoices() : [];
+        const esVoice = voices.find(v => v.lang && v.lang.toLowerCase().startsWith('es'));
+        if (esVoice) {
+          utter.voice = esVoice;
+        }
+
+        utter.onerror = () => {
+          showToast('Aviso mostrado en pantalla grande.');
+        };
+
+        window.speechSynthesis.speak(utter);
+      } catch (e) {
+        showToast('Aviso mostrado en pantalla grande.');
+      }
+    }
+
+    function speakCurrentDayAlert() {
+      const todayStr = state.selectedDateStr;
+      const tomorrowStr = addDaysStr(todayStr, 1);
+      const tomorrowInfo = getDayHoursBreakdown(tomorrowStr);
+      let msg = buildSpeechMessageForDate(todayStr);
+
+      if (tomorrowInfo.hasService) {
+        msg += ` Mañana: ${tomorrowInfo.cleanHours > 0 ? `limpieza ${tomorrowInfo.entry.clean.start} a ${tomorrowInfo.entry.clean.end}` : ''}${tomorrowInfo.cleanHours > 0 && tomorrowInfo.walkHours > 0 ? ' y ' : ''}${tomorrowInfo.walkHours > 0 ? `paseo ${tomorrowInfo.entry.walk.start} a ${tomorrowInfo.entry.walk.end}` : ''}.`;
+      } else {
+        msg += ' Mañana no hay servicio programado.';
+      }
+      speakText(msg);
+    }
+
+    function speakDateAlert(dateStr) {
+      const msg = buildSpeechMessageForDate(dateStr);
+      speakText(msg);
+    }
+
+    function renderFullScreenAlert() {
+      const todayStr = state.selectedDateStr;
+      const tomorrowStr = addDaysStr(todayStr, 1);
+      const todayInfo = getDayHoursBreakdown(todayStr);
+      const tomorrowInfo = getDayHoursBreakdown(tomorrowStr);
+
+      const fpMainCard = document.getElementById('fpMainCard');
+      const fpTodayBox = document.getElementById('fpTodayBox');
+      const fpDateTitle = document.getElementById('fpDateTitle');
+      const fpTotalHoursBadge = document.getElementById('fpTotalHoursBadge');
+      const fpHeadline = document.getElementById('fpHeadline');
+      const fpScheduleDetails = document.getElementById('fpScheduleDetails');
+      const fpTomorrowHours = document.getElementById('fpTomorrowHours');
+      const fpTomorrowSummary = document.getElementById('fpTomorrowSummary');
+
+      fpDateTitle.textContent = formatSpanishLongDate(todayStr);
+      fpTotalHoursBadge.textContent = `TOTAL HOY: ${formatHoursES(todayInfo.totalHours)}`;
+
+      // Fondo rosa prominente cuando hoy tiene servicio programado
+      fpMainCard.classList.toggle('pink-active-surface', todayInfo.hasService);
+      fpTodayBox.classList.toggle('pink-selected-cell', todayInfo.hasService);
+
+      const lines = [];
+      if (todayInfo.holidayName) {
+        lines.push(`<div class="px-3 py-2 rounded-xl bg-amber-200 text-slate-950 text-sm sm:text-base font-black">🏛️ Festivo en Mataró: ${todayInfo.holidayName}</div>`);
+      }
+
+      if (!todayInfo.hasService) {
+        fpHeadline.textContent = 'Hoy no viene nadie';
+        lines.push(`<p class="text-slate-700 font-bold">Día libre de limpieza y paseo programados.</p>`);
+      } else {
+        fpHeadline.textContent = `Hoy toca servicio (${formatHoursES(todayInfo.totalHours)})`;
+        if (todayInfo.cleanHours > 0) {
+          lines.push(
+            `<div class="px-3.5 py-2.5 rounded-xl bg-white/90 border-2 border-pink-400 flex items-center justify-between gap-2">
+              <span>🧹 <strong>Limpieza:</strong> ${todayInfo.entry.clean.start} a ${todayInfo.entry.clean.end}</span>
+              <span class="px-2.5 py-0.5 rounded-lg bg-pink-600 text-white text-sm font-black">${formatHoursES(todayInfo.cleanHours)}</span>
+            </div>`
+          );
+        }
+        if (todayInfo.walkHours > 0) {
+          lines.push(
+            `<div class="px-3.5 py-2.5 rounded-xl bg-white/90 border-2 border-pink-400 flex items-center justify-between gap-2">
+              <span>🚶♀️ <strong>Paseo:</strong> ${todayInfo.entry.walk.start} a ${todayInfo.entry.walk.end}</span>
+              <span class="px-2.5 py-0.5 rounded-lg bg-pink-600 text-white text-sm font-black">${formatHoursES(todayInfo.walkHours)}</span>
+            </div>`
+          );
+        }
+      }
+      fpScheduleDetails.innerHTML = lines.join('');
+
+      fpTomorrowHours.textContent = `Mañana: ${formatHoursES(tomorrowInfo.totalHours)}`;
+      if (!tomorrowInfo.hasService) {
+        fpTomorrowSummary.textContent = `${formatSpanishLongDate(tomorrowStr)}: sin limpieza ni paseo programados.`;
+      } else {
+        const tParts = [];
+        if (tomorrowInfo.cleanHours > 0) tParts.push(`Limpieza ${tomorrowInfo.entry.clean.start}–${tomorrowInfo.entry.clean.end} (${formatHoursES(tomorrowInfo.cleanHours)})`);
+        if (tomorrowInfo.walkHours > 0) tParts.push(`Paseo ${tomorrowInfo.entry.walk.start}–${tomorrowInfo.entry.walk.end} (${formatHoursES(tomorrowInfo.walkHours)})`);
+        fpTomorrowSummary.textContent = `${formatSpanishLongDate(tomorrowStr)} · ${tParts.join(' · ')}`;
+      }
+    }
+
+    function openFullScreenAlert() {
+      state.splashDismissed = false;
+      renderFullScreenAlert();
+      document.getElementById('fullScreenDayAlert').classList.remove('hidden');
+    }
+
+    function dismissFullScreenAlert() {
+      stopSpeechReading();
+      state.splashDismissed = true;
+      document.getElementById('fullScreenDayAlert').classList.add('hidden');
+      renderAll();
+    }
+
+    function initFullScreenDayAlertOnOpen() {
+      renderFullScreenAlert();
+      document.getElementById('fullScreenDayAlert').classList.remove('hidden');
+    }
+
+    // =========================================================================
+    // RULETILLAS COMPACTAS TIPO iPHONE (DÍA · MES · AÑO)
+    // =========================================================================
+    const WHEEL_ITEM_HEIGHT = 22;
+    const WHEEL_YEARS = [2026, 2027];
+    let wheelSyncLock = false;
+
+    function buildWheels() {
+      const dayEl = document.getElementById('wheelDay');
+      const monthEl = document.getElementById('wheelMonth');
+      const yearEl = document.getElementById('wheelYear');
+
+      const cur = parseDateStr(state.selectedDateStr);
+      const maxDays = daysInMonth(cur.getFullYear(), cur.getMonth());
+
+      dayEl.innerHTML = '';
+      for (let d = 1; d <= maxDays; d++) {
+        const div = document.createElement('div');
+        div.className = 'wheel-item';
+        div.dataset.value = String(d);
+        div.textContent = pad2(d);
+        div.onclick = () => {
+          selectDateFromWheels(d, parseDateStr(state.selectedDateStr).getMonth(), parseDateStr(state.selectedDateStr).getFullYear());
+        };
+        dayEl.appendChild(div);
+      }
+
+      monthEl.innerHTML = '';
+      for (let m = 0; m < 12; m++) {
+        const div = document.createElement('div');
+        div.className = 'wheel-item';
+        div.dataset.value = String(m);
+        div.textContent = MONTH_SHORT_NAMES[m];
+        div.onclick = () => {
+          const dObj = parseDateStr(state.selectedDateStr);
+          selectDateFromWheels(dObj.getDate(), m, dObj.getFullYear());
+        };
+        monthEl.appendChild(div);
+      }
+
+      yearEl.innerHTML = '';
+      WHEEL_YEARS.forEach((yr) => {
+        const div = document.createElement('div');
+        div.className = 'wheel-item';
+        div.dataset.value = String(yr);
+        div.textContent = String(yr);
+        div.onclick = () => {
+          const dObj = parseDateStr(state.selectedDateStr);
+          selectDateFromWheels(dObj.getDate(), dObj.getMonth(), yr);
+        };
+        yearEl.appendChild(div);
+      });
+    }
+
+    function selectDateFromWheels(day, month0, year) {
+      const clampedDay = Math.min(day, daysInMonth(year, month0));
+      state.selectedDateStr = `${year}-${pad2(month0 + 1)}-${pad2(clampedDay)}`;
+      persistState();
+      renderAll();
+      syncWheelsToState(true);
+    }
+
+    function syncWheelsToState(smooth) {
+      wheelSyncLock = true;
+      const dObj = parseDateStr(state.selectedDateStr);
+      const targetYear = dObj.getFullYear();
+      const targetMonth = dObj.getMonth();
+      const targetDay = dObj.getDate();
+
+      buildWheels();
+
+      const dayEl = document.getElementById('wheelDay');
+      const monthEl = document.getElementById('wheelMonth');
+      const yearEl = document.getElementById('wheelYear');
+
+      const dayIdx = Math.max(0, targetDay - 1);
+      const monthIdx = Math.max(0, targetMonth);
+      const yearIdx = Math.max(0, WHEEL_YEARS.indexOf(targetYear));
+
+      const behavior = smooth ? 'smooth' : 'auto';
+      dayEl.scrollTo({ top: dayIdx * WHEEL_ITEM_HEIGHT, behavior });
+      monthEl.scrollTo({ top: monthIdx * WHEEL_ITEM_HEIGHT, behavior });
+      yearEl.scrollTo({ top: yearIdx * WHEEL_ITEM_HEIGHT, behavior });
+
+      highlightWheelItems(dayEl, dayIdx);
+      highlightWheelItems(monthEl, monthIdx);
+      highlightWheelItems(yearEl, yearIdx);
+
+      setTimeout(() => {
+        wheelSyncLock = false;
+      }, 120);
+    }
+
+    function highlightWheelItems(container, activeIdx) {
+      const items = container.querySelectorAll('.wheel-item');
+      items.forEach((item, idx) => {
+        item.classList.toggle('active', idx === activeIdx);
+      });
+    }
+
+    function handleWheelScroll(type) {
+      if (wheelSyncLock) return;
+      clearTimeout(handleWheelScroll._t);
+      handleWheelScroll._t = setTimeout(() => {
+        const dayEl = document.getElementById('wheelDay');
+        const monthEl = document.getElementById('wheelMonth');
+        const yearEl = document.getElementById('wheelYear');
+
+        const dIdx = Math.max(0, Math.min(dayEl.children.length - 1, Math.round(dayEl.scrollTop / WHEEL_ITEM_HEIGHT)));
+        const mIdx = Math.max(0, Math.min(11, Math.round(monthEl.scrollTop / WHEEL_ITEM_HEIGHT)));
+        const yIdx = Math.max(0, Math.min(WHEEL_YEARS.length - 1, Math.round(yearEl.scrollTop / WHEEL_ITEM_HEIGHT)));
+
+        const yr = WHEEL_YEARS[yIdx];
+        const day = Math.min(dIdx + 1, daysInMonth(yr, mIdx));
+        const nextStr = `${yr}-${pad2(mIdx + 1)}-${pad2(day)}`;
+
+        if (nextStr !== state.selectedDateStr) {
+          state.selectedDateStr = nextStr;
+          persistState();
+          renderAll();
+        }
+        highlightWheelItems(dayEl, dIdx);
+        highlightWheelItems(monthEl, mIdx);
+        highlightWheelItems(yearEl, yIdx);
+      }, 90);
+    }
+
+    // =========================================================================
+    // NAVEGACIÓN DE VISTAS (DÍA · SEMANA · MES · AÑO) Y SELECCIÓN DE DÍAS
+    // =========================================================================
+    function setViewMode(mode) {
+      if (!['day', 'week', 'month', 'year'].includes(mode)) return;
+      state.viewMode = mode;
+      persistState();
+      renderAll();
+    }
+
+    function selectDay(dateStr) {
+      state.selectedDateStr = dateStr;
+      persistState();
+      renderAll();
+      syncWheelsToState(true);
+    }
+
+    function goToToday() {
+      state.selectedDateStr = '2026-11-21';
+      persistState();
+      renderAll();
+      syncWheelsToState(true);
+      showToast('Fecha posicionada en 21 de Noviembre de 2026.');
+    }
+
+    function stepDay(delta) {
+      state.selectedDateStr = addDaysStr(state.selectedDateStr, delta);
+      persistState();
+      renderAll();
+      syncWheelsToState(true);
+    }
+
+    function stepWeek(deltaWeeks) {
+      state.selectedDateStr = addDaysStr(state.selectedDateStr, deltaWeeks * 7);
+      persistState();
+      renderAll();
+      syncWheelsToState(true);
+    }
+
+    function stepMonth(deltaMonths) {
+      const d = parseDateStr(state.selectedDateStr);
+      const nextYear = d.getFullYear() + Math.floor((d.getMonth() + deltaMonths) / 12);
+      const rawM = (d.getMonth() + deltaMonths) % 12;
+      const nextMonth0 = rawM < 0 ? rawM + 12 : rawM;
+      const clampedYear = Math.min(2027, Math.max(2026, nextYear));
+      const nextDay = Math.min(d.getDate(), daysInMonth(clampedYear, nextMonth0));
+      state.selectedDateStr = `${clampedYear}-${pad2(nextMonth0 + 1)}-${pad2(nextDay)}`;
+      persistState();
+      renderAll();
+      syncWheelsToState(true);
+    }
+
+    function selectYear(year) {
+      const d = parseDateStr(state.selectedDateStr);
+      const clampedDay = Math.min(d.getDate(), daysInMonth(year, d.getMonth()));
+      state.selectedDateStr = `${year}-${pad2(d.getMonth() + 1)}-${pad2(clampedDay)}`;
+      persistState();
+      renderAll();
+      syncWheelsToState(true);
+    }
+
+    // =========================================================================
+    // RENDERIZADO DE LA FICHA SUPERIOR ROSA, CUADRE Y VISTAS L–V
+    // =========================================================================
+    function renderTopSelectedDayCard() {
+      const info = getDayHoursBreakdown(state.selectedDateStr);
+      const card = document.getElementById('selectedDayTopCard');
+      const titleEl = document.getElementById('selDayTitle');
+      const pillEl = document.getElementById('selDayHoursPill');
+      const holBadge = document.getElementById('selDayHolidayBadge');
+      const listEl = document.getElementById('selDayScheduleList');
+      const btnEdit = document.getElementById('btnTopCardEdit');
+
+      // Siempre destacamos el día seleccionado o con servicio en fondo rosa claro y borde marcado
+      card.classList.add('pink-selected-cell');
+      titleEl.textContent = formatSpanishLongDate(state.selectedDateStr);
+      pillEl.textContent = formatHoursES(info.totalHours);
+
+      if (info.holidayName) {
+        holBadge.textContent = `Festivo: ${info.holidayName}`;
+        holBadge.classList.remove('hidden');
+      } else {
+        holBadge.classList.add('hidden');
+      }
+
+      btnEdit.classList.toggle('hidden', !state.unlocked);
+
+      const rows = [];
+      if (info.cleanHours > 0) {
+        rows.push(
+          `<div class="px-3 py-2 rounded-xl bg-white border-2 border-pink-400 flex items-center justify-between">
+            <span>🧹 Limpieza (${info.entry.clean.start} – ${info.entry.clean.end})</span>
+            <span class="font-black text-pink-900">${formatHoursES(info.cleanHours)}</span>
+          </div>`
+        );
+      }
+      if (info.walkHours > 0) {
+        rows.push(
+          `<div class="px-3 py-2 rounded-xl bg-white border-2 border-pink-400 flex items-center justify-between">
+            <span>🚶♀️ Paseo (${info.entry.walk.start} – ${info.entry.walk.end})</span>
+            <span class="font-black text-pink-900">${formatHoursES(info.walkHours)}</span>
+          </div>`
+        );
+      }
+      if (rows.length === 0) {
+        rows.push(
+          `<div class="px-3 py-2 rounded-xl bg-white/80 border border-pink-300 text-slate-700 font-bold">
+            Sin servicio programado este día (0,0 h).
+          </div>`
+        );
+      }
+      listEl.innerHTML = rows.join('');
+    }
+
+    function renderQuotaSummary() {
+      const d = parseDateStr(state.selectedDateStr);
+      const yr = d.getFullYear();
+      const m0 = d.getMonth();
+      const ms = getMonthSummary(yr, m0);
+      const ys = getYearSummary(yr);
+
+      document.getElementById('quotaMonthLabel').textContent =
+        `${MONTH_NAMES[m0].toUpperCase()} ${yr} · CUADRE MENSUAL`;
+
+      const statusText = ms.isBalanced
+        ? `MES CUADRADO · Paseo ${formatHoursES(ms.walkSum)} / 39,0 h · Limpieza ${formatHoursES(ms.cleanSum)} / 6,0 h`
+        : `Paseo ${formatHoursES(ms.walkSum)} / 39,0 h · Limpieza ${formatHoursES(ms.cleanSum)} / 6,0 h`;
+      document.getElementById('quotaMonthStatus').textContent = statusText;
+
+      const surplusLabel = ms.surplusTotal > 0
+        ? `Horas sobrantes mes: +${formatHoursES(ms.surplusTotal)}`
+        : (ms.walkDiff < 0 || ms.cleanDiff < 0
+            ? `Faltan por cuadrar: ${formatHoursES(Math.abs(Math.min(0, ms.walkDiff)) + Math.abs(Math.min(0, ms.cleanDiff)))}`
+            : 'Sobrante mes: 0,0 h');
+      document.getElementById('quotaSurplusBadge').textContent = surplusLabel;
+
+      document.getElementById('quotaYearSummary').textContent =
+        `Cierre Año ${yr}: Paseo ${formatHoursES(ys.walkYear)} / 468,0 h · Limpieza ${formatHoursES(ys.cleanYear)} / 72,0 h`;
+    }
+
+    function renderDayView() {
+      const info = getDayHoursBreakdown(state.selectedDateStr);
+      document.getElementById('dayViewHeading').textContent = formatSpanishLongDate(state.selectedDateStr);
+
+      const body = document.getElementById('dayViewBody');
+      const editBtnHtml = state.unlocked
+        ? `<button type="button" onclick="openDayEditModal('${info.dateStr}')" class="mt-3 px-4 py-2 rounded-xl bg-slate-950 text-white text-xs font-black cursor-pointer">✏️ Modificar horas de este día</button>`
+        : '';
+
+      body.innerHTML = `
+        <div class="rounded-2xl border-2 border-slate-900 p-4 ${info.hasService ? 'pink-active-surface' : 'bg-slate-50'}">
+          <div class="flex items-center justify-between gap-2 mb-2">
+            <span class="text-sm font-black text-slate-950">${info.hasService ? 'Jornada con servicio' : 'Sin servicio programado'}</span>
+            <span class="px-3 py-1 rounded-full bg-slate-950 text-white text-xs font-black">Total: ${formatHoursES(info.totalHours)}</span>
+          </div>
+          <p class="text-sm font-bold text-slate-800">
+            🧹 Limpieza: ${info.cleanHours > 0 ? `${info.entry.clean.start} a ${info.entry.clean.end} (${formatHoursES(info.cleanHours)})` : 'No'}
+          </p>
+          <p class="text-sm font-bold text-slate-800 mt-1">
+            🚶♀️ Paseo: ${info.walkHours > 0 ? `${info.entry.walk.start} a ${info.entry.walk.end} (${formatHoursES(info.walkHours)})` : 'No'}
+          </p>
+          ${editBtnHtml}
+        </div>
+      `;
+    }
+
+    function getMondayOfWeek(dateStr) {
+      const d = parseDateStr(dateStr);
+      const day = d.getDay(); // 0=Dom..6=Sab
+      const diffToMonday = day === 0 ? -6 : 1 - day;
+      d.setDate(d.getDate() + diffToMonday);
+      return formatDateStr(d);
+    }
+
+    function renderWeekView() {
+      const mondayStr = getMondayOfWeek(state.selectedDateStr);
+      const fridayStr = addDaysStr(mondayStr, 4);
+
+      const dMon = parseDateStr(mondayStr);
+      const dFri = parseDateStr(fridayStr);
+
+      document.getElementById('weekRangeTitle').textContent =
+        `${dMon.getDate()} ${MONTH_SHORT_NAMES[dMon.getMonth()]} – ${dFri.getDate()} ${MONTH_SHORT_NAMES[dFri.getMonth()]} ${dFri.getFullYear()}`;
+
+      const gridBody = document.getElementById('weekGridBody');
+      let weekTotal = 0;
+      const cells = [];
+
+      for (let i = 0; i < 5; i++) {
+        const ds = addDaysStr(mondayStr, i);
+        const dObj = parseDateStr(ds);
+        const info = getDayHoursBreakdown(ds);
+        weekTotal += info.totalHours;
+
+        const isSelected = ds === state.selectedDateStr;
+        const bgClass = isSelected
+          ? 'pink-selected-cell'
+          : (info.hasService ? 'bg-pink-50/70' : 'bg-white');
+
+        const badges = [];
+        if (info.holidayName) {
+          badges.push(`<div class="mt-1 px-1 py-0.5 rounded bg-amber-200 text-slate-950 text-[9px] font-black leading-tight">Festivo</div>`);
+        }
+        if (info.cleanHours > 0) {
+          badges.push(
+            `<div class="mt-1 px-1 py-0.5 rounded bg-white border border-pink-400 text-[9px] sm:text-[10px] font-black text-slate-950 leading-tight">
+              🧹 ${info.entry.clean.start}–${info.entry.clean.end}
+            </div>`
+          );
+        }
+        if (info.walkHours > 0) {
+          badges.push(
+            `<div class="mt-1 px-1 py-0.5 rounded bg-pink-600 text-white text-[9px] sm:text-[10px] font-black leading-tight">
+              🚶♀️ ${info.entry.walk.start}–${info.entry.walk.end}
+            </div>`
+          );
+        }
+        if (!info.hasService && !info.holidayName) {
+          badges.push(`<div class="mt-2 text-[10px] font-bold text-slate-400">—</div>`);
+        }
+
+        const editSmallBtn = state.unlocked
+          ? `<button type="button" onclick="event.stopPropagation(); openDayEditModal('${ds}')" class="mt-1.5 w-full py-0.5 rounded bg-slate-900 text-white text-[9px] font-black cursor-pointer">✏️ Edit</button>`
+          : '';
+
+        cells.push(
+          `<div
+            onclick="selectDay('${ds}')"
+            class="workweek-cell ${bgClass} p-1.5 sm:p-2 min-h-[112px] sm:min-h-[130px] flex flex-col justify-between cursor-pointer transition"
+          >
+            <div>
+              <div class="flex items-center justify-between gap-0.5">
+                <span class="text-xs sm:text-sm font-black ${isSelected ? 'text-pink-800' : 'text-slate-950'}">${dObj.getDate()}</span>
+                <span class="text-[9px] sm:text-[10px] font-black text-slate-700">${formatHoursES(info.totalHours)}</span>
+              </div>
+              ${badges.join('')}
+            </div>
+            ${editSmallBtn}
+          </div>`
+        );
+      }
+
+      gridBody.innerHTML = cells.join('');
+      document.getElementById('weekHoursSummary').textContent = `Total Lunes–Viernes: ${formatHoursES(weekTotal)}`;
+    }
+
+    function renderMonthView() {
+      const d = parseDateStr(state.selectedDateStr);
+      const yr = d.getFullYear();
+      const m0 = d.getMonth();
+
+      document.getElementById('monthViewTitle').textContent = `${MONTH_NAMES[m0]} ${yr}`;
+
+      // Recorremos las semanas del mes mostrando únicamente Lunes a Viernes (5 columnas)
+      const firstOfMonth = new Date(yr, m0, 1, 12, 0, 0);
+      const lastOfMonth = new Date(yr, m0 + 1, 0, 12, 0, 0);
+
+      let cursorMonday = getMondayOfWeek(formatDateStr(firstOfMonth));
+      const cells = [];
+
+      while (parseDateStr(cursorMonday) <= lastOfMonth) {
+        for (let i = 0; i < 5; i++) {
+          const ds = addDaysStr(cursorMonday, i);
+          const dObj = parseDateStr(ds);
+          const inCurrentMonth = dObj.getMonth() === m0;
+          const info = getDayHoursBreakdown(ds);
+          const isSelected = ds === state.selectedDateStr;
+
+          let cellBg = inCurrentMonth ? 'bg-white' : 'bg-slate-100/70 opacity-60';
+          if (isSelected) {
+            cellBg = 'pink-selected-cell';
+          } else if (inCurrentMonth && info.hasService) {
+            cellBg = 'bg-pink-50/75';
+          }
+
+          const miniTags = [];
+          if (inCurrentMonth) {
+            if (info.cleanHours > 0) {
+              miniTags.push(`<div class="mt-0.5 px-1 rounded bg-white border border-pink-300 text-[8px] sm:text-[9px] font-black text-slate-900 truncate">🧹 ${formatHoursES(info.cleanHours)}</div>`);
+            }
+            if (info.walkHours > 0) {
+              miniTags.push(`<div class="mt-0.5 px-1 rounded bg-pink-600 text-white text-[8px] sm:text-[9px] font-black truncate">🚶♀️ ${formatHoursES(info.walkHours)}</div>`);
+            }
+            if (info.holidayName) {
+              miniTags.push(`<div class="mt-0.5 px-1 rounded bg-amber-200 text-slate-950 text-[8px] font-black truncate">Festivo</div>`);
+            }
+          }
+
+          cells.push(
+            `<div
+              onclick="selectDay('${ds}')"
+              class="workweek-cell ${cellBg} p-1 sm:p-1.5 min-h-[76px] sm:min-h-[92px] cursor-pointer transition flex flex-col justify-between"
+            >
+              <div class="flex items-center justify-between">
+                <span class="text-[11px] sm:text-xs font-black ${isSelected ? 'text-pink-800' : 'text-slate-950'}">${dObj.getDate()}</span>
+                ${inCurrentMonth && info.totalHours > 0 ? `<span class="text-[9px] font-black text-pink-900">${formatHoursES(info.totalHours)}</span>` : ''}
+              </div>
+              <div>${miniTags.join('')}</div>
+            </div>`
+          );
+        }
+        cursorMonday = addDaysStr(cursorMonday, 7);
+      }
+
+      document.getElementById('monthGridBody').innerHTML = cells.join('');
+    }
+
+    function renderYearView() {
+      const yr = parseDateStr(state.selectedDateStr).getFullYear();
+      document.getElementById('yearViewTitle').textContent = `Año Natural ${yr}`;
+
+      const btn26 = document.getElementById('btnSelectYear2026');
+      const btn27 = document.getElementById('btnSelectYear2027');
+      if (yr === 2026) {
+        btn26.className = 'px-3 py-1.5 rounded-xl bg-pink-600 text-white text-xs font-black cursor-pointer';
+        btn27.className = 'px-3 py-1.5 rounded-xl bg-slate-200 text-slate-900 text-xs font-black cursor-pointer';
+      } else {
+        btn27.className = 'px-3 py-1.5 rounded-xl bg-pink-600 text-white text-xs font-black cursor-pointer';
+        btn26.className = 'px-3 py-1.5 rounded-xl bg-slate-200 text-slate-900 text-xs font-black cursor-pointer';
+      }
+
+      const ys = getYearSummary(yr);
+      document.getElementById('yearAnnualTotalsBox').innerHTML =
+        `Resumen Anual ${yr}: Paseo <span class="text-pink-800">${formatHoursES(ys.walkYear)}</span> / 468,0 h · Limpieza <span class="text-pink-800">${formatHoursES(ys.cleanYear)}</span> / 72,0 h · Total anual: <span>${formatHoursES(ys.totalYear)}</span>`;
+
+      const curMonth0 = parseDateStr(state.selectedDateStr).getMonth();
+      const monthCards = [];
+      for (let m = 0; m < 12; m++) {
+        const ms = getMonthSummary(yr, m);
+        const isCur = m === curMonth0;
+        monthCards.push(
+          `<div
+            onclick="selectDateFromWheels(1, ${m}, ${yr}); setViewMode('month');"
+            class="rounded-xl border-2 ${isCur ? 'pink-selected-cell' : 'border-slate-900 bg-slate-50'} p-3 cursor-pointer hover:bg-pink-50 transition"
+          >
+            <div class="flex items-center justify-between">
+              <span class="text-sm font-black text-slate-950">${MONTH_NAMES[m]}</span>
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-black ${ms.isBalanced ? 'bg-emerald-200 text-emerald-950' : 'bg-amber-200 text-amber-950'}">
+                ${ms.isBalanced ? 'CUADRADO' : 'REVISAR'}
+              </span>
+            </div>
+            <p class="text-xs font-bold text-slate-800 mt-1.5">🚶♀️ Paseo: ${formatHoursES(ms.walkSum)} / 39,0 h</p>
+            <p class="text-xs font-bold text-slate-800">🧹 Limpieza: ${formatHoursES(ms.cleanSum)} / 6,0 h</p>
+            <p class="text-[11px] font-black text-pink-900 mt-1">Sobrante: +${formatHoursES(ms.surplusTotal)}</p>
+          </div>`
+        );
+      }
+      document.getElementById('yearMonthsGrid').innerHTML = monthCards.join('');
+
+      const holidaysObj = OFFICIAL_HOLIDAYS_MATARO[yr] || {};
+      const holEntries = Object.entries(holidaysObj).map(([ds, label]) => `${ds.slice(5)} (${label})`);
+      document.getElementById('yearHolidaysList').innerHTML =
+        `<p class="font-black text-amber-950 mb-1">16 Festivos Oficiales de Mataró / Cataluña (${yr}):</p><p>${holEntries.join(' · ')}</p>`;
+    }
+
+    function updateViewTabsUI() {
+      const tabs = {
+        day: document.getElementById('navTabDay'),
+        week: document.getElementById('navTabWeek'),
+        month: document.getElementById('navTabMonth'),
+        year: document.getElementById('navTabYear')
+      };
+
+      Object.entries(tabs).forEach(([key, el]) => {
+        if (!el) return;
+        const active = state.viewMode === key;
+        el.className = active
+          ? 'py-2.5 px-2 rounded-full text-xs sm:text-sm font-black bg-pink-600 text-white shadow transition cursor-pointer'
+          : 'py-2.5 px-2 rounded-full text-xs sm:text-sm font-black text-slate-800 hover:bg-slate-100 transition cursor-pointer';
+      });
+
+      document.getElementById('viewDay').classList.toggle('hidden', state.viewMode !== 'day');
+      document.getElementById('viewWeek').classList.toggle('hidden', state.viewMode !== 'week');
+      document.getElementById('viewMonth').classList.toggle('hidden', state.viewMode !== 'month');
+      document.getElementById('viewYear').classList.toggle('hidden', state.viewMode !== 'year');
+    }
+
+    function updateLockUI() {
+      const badge = document.getElementById('lockStatusBadge');
+      const pinBtn = document.getElementById('btnTopPinLock');
+      const adminBar = document.getElementById('adminToolbar');
+
+      if (state.unlocked) {
+        badge.className = 'px-2 py-0.5 rounded-md bg-emerald-700 text-white font-black';
+        badge.textContent = '🔓 MODO EDICIÓN ACTIVO (DOMINGO)';
+        pinBtn.textContent = 'Bloquear';
+        adminBar.classList.remove('hidden');
+      } else {
+        badge.className = 'px-2 py-0.5 rounded-md bg-slate-800 text-amber-300 font-black';
+        badge.textContent = '🔒 SOLO LECTURA (ANTI-TOQUES ACTIVADO · PIN: 1234 / 4402)';
+        pinBtn.textContent = 'PIN';
+        adminBar.classList.add('hidden');
+      }
+    }
+
+    function renderAll() {
+      updateLockUI();
+      updateViewTabsUI();
+      renderTopSelectedDayCard();
+      renderQuotaSummary();
+      renderDayView();
+      renderWeekView();
+      renderMonthView();
+      renderYearView();
+      if (!state.splashDismissed) {
+        renderFullScreenAlert();
+      }
+    }
+
+    // =========================================================================
+    // PIN, MODAL DE COORDINACIÓN Y EDITOR DE HORARIOS (TRAMOS DE 5 MINUTOS)
+    // =========================================================================
+    function handlePinButtonClick() {
+      if (state.unlocked) {
+        state.unlocked = false;
+        renderAll();
+        showToast('Bloqueo de solo lectura activado.');
+        return;
+      }
+      document.getElementById('pinInput').value = '';
+      document.getElementById('pinErrorMsg').classList.add('hidden');
+      document.getElementById('pinModal').classList.remove('hidden');
+      setTimeout(() => document.getElementById('pinInput').focus(), 50);
+    }
+
+    function closePinModal() {
+      document.getElementById('pinModal').classList.add('hidden');
+    }
+
+    function submitPinUnlock(event) {
+      event.preventDefault();
+      const entered = document.getElementById('pinInput').value.trim();
+      if (ACCEPTED_PINS.includes(entered)) {
+        state.unlocked = true;
+        closePinModal();
+        renderAll();
+        showToast('Modo edición desbloqueado.');
+      } else {
+        document.getElementById('pinErrorMsg').classList.remove('hidden');
+      }
+    }
+
+    function openCoordinationModal() {
+      document.getElementById('coordinationModal').classList.remove('hidden');
+    }
+
+    function closeCoordinationModal() {
+      document.getElementById('coordinationModal').classList.add('hidden');
+    }
+
+    let editingDateStr = null;
+
+    function populate5MinTimeSelects() {
+      const options = [];
+      for (let mins = 7 * 60; mins <= 21 * 60; mins += 5) {
+        const hh = pad2(Math.floor(mins / 60));
+        const mm = pad2(mins % 60);
+        const val = `${hh}:${mm}`;
+        options.push(`<option value="${val}">${val}</option>`);
+      }
+      const htmlOpts = options.join('');
+      ['editCleanStart', 'editCleanEnd', 'editWalkStart', 'editWalkEnd'].forEach((id) => {
+        const sel = document.getElementById(id);
+        if (sel && sel.options.length === 0) {
+          sel.innerHTML = htmlOpts;
+        }
+      });
+    }
+
+    function openDayEditModal(dateStr) {
+      if (!state.unlocked) {
+        handlePinButtonClick();
+        return;
+      }
+      populate5MinTimeSelects();
+      editingDateStr = dateStr;
+      const info = getDayHoursBreakdown(dateStr);
+
+      document.getElementById('editModalDateHeading').textContent = formatSpanishLongDate(dateStr);
+      document.getElementById('editCleanEnabled').checked = !!info.entry.clean.enabled;
+      document.getElementById('editCleanStart').value = info.entry.clean.start || '09:00';
+      document.getElementById('editCleanEnd').value = info.entry.clean.end || '10:30';
+
+      document.getElementById('editWalkEnabled').checked = !!info.entry.walk.enabled;
+      document.getElementById('editWalkStart').value = info.entry.walk.start || '15:40';
+      document.getElementById('editWalkEnd').value = info.entry.walk.end || '17:40';
+
+      document.getElementById('editValidationError').classList.add('hidden');
+      updateEditModalPreview();
+      document.getElementById('dayEditModal').classList.remove('hidden');
+    }
+
+    function closeDayEditModal() {
+      document.getElementById('dayEditModal').classList.add('hidden');
+      editingDateStr = null;
+    }
+
+    function applyQuickPreset(type, enabled, startVal, endVal) {
+      if (type === 'clean') {
+        document.getElementById('editCleanEnabled').checked = enabled;
+        document.getElementById('editCleanStart').value = startVal;
+        document.getElementById('editCleanEnd').value = endVal;
+      } else {
+        document.getElementById('editWalkEnabled').checked = enabled;
+        document.getElementById('editWalkStart').value = startVal;
+        document.getElementById('editWalkEnd').value = endVal;
+      }
+      updateEditModalPreview();
+    }
+
+    function updateEditModalPreview() {
+      if (!editingDateStr) return;
+      const cleanEn = document.getElementById('editCleanEnabled').checked;
+      const cStart = document.getElementById('editCleanStart').value;
+      const cEnd = document.getElementById('editCleanEnd').value;
+      const cHours = cleanEn ? diffHours(cStart, cEnd) : 0;
+
+      const walkEn = document.getElementById('editWalkEnabled').checked;
+      const wStart = document.getElementById('editWalkStart').value;
+      const wEnd = document.getElementById('editWalkEnd').value;
+      const wHours = walkEn ? diffHours(wStart, wEnd) : 0;
+
+      document.getElementById('editCleanHoursLabel').textContent = formatHoursES(cHours);
+      document.getElementById('editWalkHoursLabel').textContent = formatHoursES(wHours);
+
+      const dObj = parseDateStr(editingDateStr);
+      const yr = dObj.getFullYear();
+      const m0 = dObj.getMonth();
+      const prevDay = getDayHoursBreakdown(editingDateStr);
+      const ms = getMonthSummary(yr, m0);
+
+      const projectedWalk = Math.round((ms.walkSum - prevDay.walkHours + wHours) * 1000) / 1000;
+      const projectedClean = Math.round((ms.cleanSum - prevDay.cleanHours + cHours) * 1000) / 1000;
+
+      document.getElementById('editLiveBalanceBox').innerHTML =
+        `Cuadre previsto en ${MONTH_NAMES[m0]} ${yr}: Paseo <strong>${formatHoursES(projectedWalk)}</strong> / 39,0 h · Limpieza <strong>${formatHoursES(projectedClean)}</strong> / 6,0 h`;
+    }
+
+    function saveDayEditModal() {
+      if (!editingDateStr) return;
+      const cleanEn = document.getElementById('editCleanEnabled').checked;
+      const cStart = document.getElementById('editCleanStart').value;
+      const cEnd = document.getElementById('editCleanEnd').value;
+
+      const walkEn = document.getElementById('editWalkEnabled').checked;
+      const wStart = document.getElementById('editWalkStart').value;
+      const wEnd = document.getElementById('editWalkEnd').value;
+
+      const errEl = document.getElementById('editValidationError');
+      if (cleanEn && timeToMinutes(cEnd) <= timeToMinutes(cStart)) {
+        errEl.textContent = 'La hora de fin de limpieza debe ser posterior a la de inicio.';
+        errEl.classList.remove('hidden');
+        return;
+      }
+      if (walkEn && timeToMinutes(wEnd) <= timeToMinutes(wStart)) {
+        errEl.textContent = 'La hora de fin de paseo debe ser posterior a la de inicio.';
+        errEl.classList.remove('hidden');
+        return;
+      }
+
+      const entry = getDayEntry(editingDateStr);
+      entry.clean = { enabled: cleanEn, start: cStart, end: cEnd };
+      entry.walk = { enabled: walkEn, start: wStart, end: wEnd };
+
+      persistState();
+      closeDayEditModal();
+      renderAll();
+      showToast('Horario actualizado correctamente.');
+    }
+
+    // =========================================================================
+    // AUTO-CUADRE MENSUAL / ANUAL, RESTAURACIÓN Y EXPORTACIÓN .ICS
+    // =========================================================================
+    function autoBalanceMonthInYear(year, monthIndex0) {
+      const totalDays = daysInMonth(year, monthIndex0);
+      const workdays = [];
+      const mondays = [];
+
+      // 1. Resetear el mes para preparar el reparto limpio
+      for (let d = 1; d <= totalDays; d++) {
+        const ds = `${year}-${pad2(monthIndex0 + 1)}-${pad2(d)}`;
+        const dow = new Date(year, monthIndex0, d, 12, 0, 0).getDay();
+        const hol = isHolidayMataro(ds);
+
+        if (!state.years[year]) {
+          state.years[year] = {};
+        }
+        if (!state.years[year][ds]) {
+          state.years[year][ds] = {
+            clean: { enabled: false, start: '09:00', end: '10:30' },
+            walk: { enabled: false, start: '15:40', end: '17:40' }
+          };
+        } else {
+          state.years[year][ds].clean.enabled = false;
+          state.years[year][ds].walk.enabled = false;
+        }
+
+        const isWorkday = dow >= 1 && dow <= 5 && !hol;
+        if (isWorkday) {
+          workdays.push(ds);
+          if (dow === 1) {
+            mondays.push(ds);
+          }
+        }
+      }
+
+      // 2. Cuadrar Limpieza a 6,0 h exactas
+      const cleanTargetDays = mondays.length >= 3 ? mondays : workdays.slice(0, 4);
+      if (cleanTargetDays.length >= 4) {
+        // Los 4 primeros lunes asignan 1,5 h (09:00 a 10:30) = 6,0 h
+        for (let i = 0; i < 4; i++) {
+          state.years[year][cleanTargetDays[i]].clean = { enabled: true, start: '09:00', end: '10:30' };
+        }
+      } else if (cleanTargetDays.length === 3) {
+        // 3 lunes a 2,0 h (09:00 a 11:00) = 6,0 h
+        cleanTargetDays.forEach(ds => {
+          state.years[year][ds].clean = { enabled: true, start: '09:00', end: '11:00' };
+        });
+      } else {
+        // Distribuir 6h entre los días disponibles
+        let remClean = MONTHLY_CLEAN_TARGET;
+        for (let i = 0; i < cleanTargetDays.length && remClean > 0.001; i++) {
+          const ds = cleanTargetDays[i];
+          const dur = Math.min(remClean, 2.0);
+          const endHour = 9 + Math.floor(dur);
+          const endMin = Math.round((dur % 1) * 60);
+          state.years[year][ds].clean = {
+            enabled: true,
+            start: '09:00',
+            end: `${pad2(endHour)}:${pad2(endMin)}`
+          };
+          remClean = Math.round((remClean - dur) * 1000) / 1000;
+        }
+      }
+
+      // 3. Cuadrar Paseo a 39,0 h exactas
+      let remWalk = MONTHLY_WALK_TARGET;
+      for (let i = 0; i < workdays.length && remWalk > 0.001; i++) {
+        const ds = workdays[i];
+        if (remWalk >= 2.0) {
+          state.years[year][ds].walk = { enabled: true, start: '15:40', end: '17:40' };
+          remWalk = Math.round((remWalk - 2.0) * 1000) / 1000;
+        } else {
+          const durMins = Math.round(remWalk * 60);
+          const startMins = 15 * 60 + 40;
+          const endMins = startMins + durMins;
+          const endH = pad2(Math.floor(endMins / 60));
+          const endM = pad2(endMins % 60);
+          state.years[year][ds].walk = { enabled: true, start: '15:40', end: `${endH}:${endM}` };
+          remWalk = 0;
+        }
+      }
+    }
+
+    function autoBalanceActiveMonth() {
+      const d = parseDateStr(state.selectedDateStr);
+      const yr = d.getFullYear();
+      const m0 = d.getMonth();
+      autoBalanceMonthInYear(yr, m0);
+      persistState();
+      renderAll();
+      showToast(`Mes de ${MONTH_NAMES[m0]} ${yr} cuadrado a 39h paseo y 6h limpieza.`);
+    }
+
+    function autoBalanceActiveYear() {
+      const yr = parseDateStr(state.selectedDateStr).getFullYear();
+      for (let m = 0; m < 12; m++) {
+        autoBalanceMonthInYear(yr, m);
+      }
+      persistState();
+      renderAll();
+      showToast(`Año natural ${yr} cuadrado por completo (468h paseo y 72h limpieza).`);
+    }
+
+    function resetActiveYearToDefault() {
+      const yr = parseDateStr(state.selectedDateStr).getFullYear();
+      if (!confirm(`¿Restaurar todo el año ${yr} a la programación predeterminada (39h paseo/mes y 6h limpieza/mes)?`)) {
+        return;
+      }
+      state.years[yr] = generateDefaultYearSchedule(yr);
+      persistState();
+      renderAll();
+      showToast(`Año natural ${yr} restaurado a la configuración inicial.`);
+    }
+
+    function exportCalendarICS(scope) {
+      const cur = parseDateStr(state.selectedDateStr);
+      const yr = cur.getFullYear();
+      const m0 = cur.getMonth();
+
+      let dates = [];
+      let filename = '';
+
+      if (scope === 'month') {
+        const total = daysInMonth(yr, m0);
+        for (let d = 1; d <= total; d++) {
+          dates.push(`${yr}-${pad2(m0 + 1)}-${pad2(d)}`);
+        }
+        filename = `cuadrante_vicenta_${yr}_${pad2(m0 + 1)}.ics`;
+      } else {
+        for (let m = 0; m < 12; m++) {
+          const total = daysInMonth(yr, m);
+          for (let d = 1; d <= total; d++) {
+            dates.push(`${yr}-${pad2(m + 1)}-${pad2(d)}`);
+          }
+        }
+        filename = `cuadrante_vicenta_${yr}_completo.ics`;
+      }
+
+      const events = [];
+      const nowStamp = new Date().toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+
+      dates.forEach(ds => {
+        const info = getDayHoursBreakdown(ds);
+        const yStr = ds.slice(0, 4);
+        const mStr = ds.slice(5, 7);
+        const dStr = ds.slice(8, 10);
+
+        if (info.cleanHours > 0) {
+          const [csH, csM] = info.entry.clean.start.split(':');
+          const [ceH, ceM] = info.entry.clean.end.split(':');
+          events.push([
+            'BEGIN:VEVENT',
+            `UID:clean-${ds}-vicenta@mataro.local`,
+            `DTSTAMP:${nowStamp}`,
+            `DTSTART:${yStr}${mStr}${dStr}T${csH}${csM}00`,
+            `DTEND:${yStr}${mStr}${dStr}T${ceH}${ceM}00`,
+            `SUMMARY:🧹 Limpieza Vicenta (${formatHoursES(info.cleanHours)})`,
+            `DESCRIPTION:Servicio de limpieza domiciliaria para Vicenta Serrano Machín en Mataró. Coordinador: Domingo (665 78 44 02).`,
+            'LOCATION:Mataró, Barcelona',
+            'STATUS:CONFIRMED',
+            'END:VEVENT'
+          ].join('\r\n'));
+        }
+
+        if (info.walkHours > 0) {
+          const [wsH, wsM] = info.entry.walk.start.split(':');
+          const [weH, weM] = info.entry.walk.end.split(':');
+          events.push([
+            'BEGIN:VEVENT',
+            `UID:walk-${ds}-vicenta@mataro.local`,
+            `DTSTAMP:${nowStamp}`,
+            `DTSTART:${yStr}${mStr}${dStr}T${wsH}${wsM}00`,
+            `DTEND:${yStr}${mStr}${dStr}T${weH}${weM}00`,
+            `SUMMARY:🚶♀️ Paseo Vicenta (${formatHoursES(info.walkHours)})`,
+            `DESCRIPTION:Servicio de paseo para Vicenta Serrano Machín en Mataró. Coordinador: Domingo (665 78 44 02).`,
+            'LOCATION:Mataró, Barcelona',
+            'STATUS:CONFIRMED',
+            'END:VEVENT'
+          ].join('\r\n'));
+        }
+      });
+
+      if (events.length === 0) {
+        showToast('No hay servicios programados en el periodo seleccionado para exportar.');
+        return;
+      }
+
+      const icsContent = [
+        'BEGIN:VCALENDAR',
+        'VERSION:2.0',
+        'PRODID:-//Cuadrante Vicenta Serrano Machin//Mataro ES//ES',
+        'CALSCALE:GREGORIAN',
+        'METHOD:PUBLISH',
+        ...events,
+        'END:VCALENDAR'
+      ].join('\r\n');
+
+      const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(link.href);
+
+      showToast(`Archivo ${filename} descargado con éxito.`);
+    }
+
+    // =========================================================================
+    // INICIALIZACIÓN GLOBAL DE LA APLICACIÓN
+    // =========================================================================
+    window.addEventListener('DOMContentLoaded', () => {
+      initVicentaLogo();
+      syncWheelsToState(false);
+      renderAll();
+      initFullScreenDayAlertOnOpen();
+    });
+  </script>
+</body>
+</html>
