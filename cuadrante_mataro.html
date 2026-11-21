@@ -227,6 +227,24 @@
         </button>
       </div>
 
+      <!-- Franja en vivo: Hora actual y Temperatura de Mataró para Vicenta -->
+      <div id="fpLiveWeatherBar" class="rounded-2xl border-2 border-sky-400 bg-sky-50 p-3 sm:p-3.5 mb-4 flex flex-wrap items-center justify-between gap-2 shadow-sm">
+        <div class="flex items-center gap-2">
+          <span class="text-2xl">🕒</span>
+          <div>
+            <span class="block text-[10px] font-black uppercase text-sky-800 tracking-wider">Hora actual</span>
+            <span id="fpLiveClock" class="text-sm sm:text-base font-black text-slate-950">Calculando hora...</span>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <span id="fpWeatherIcon" class="text-2xl">🌡️</span>
+          <div>
+            <span class="block text-[10px] font-black uppercase text-sky-800 tracking-wider">El Tiempo en Mataró</span>
+            <span id="fpWeatherText" class="text-sm sm:text-base font-black text-sky-950">Consultando temperatura...</span>
+          </div>
+        </div>
+      </div>
+
       <!-- Bloque principal de HOY -->
       <div
         id="fpTodayBox"
@@ -1302,8 +1320,24 @@
     }
 
     function formatHoursES(hours) {
-      const rounded = Math.round(hours * 100) / 100;
-      return `${rounded.toFixed(1).replace('.', ',')} h`;
+      const rounded = Math.round(hours * 10) / 10;
+      if (rounded === 1) return '1 hora';
+      if (rounded === 0) return '0 horas';
+      if (Number.isInteger(rounded)) return `${rounded} horas`;
+      return `${rounded.toFixed(1).replace('.', ',')} horas`;
+    }
+
+    function formatHoursSpokenES(hours) {
+      if (hours <= 0) return 'cero horas';
+      if (Math.abs(hours - 1.0) < 0.05) return '1 hora';
+      if (Math.abs(hours - 1.5) < 0.05) return '1 hora y media';
+      const ent = Math.floor(hours);
+      const dec = Math.round((hours % 1) * 60);
+      if (dec === 0) return `${ent} horas`;
+      if (dec === 30) return `${ent} horas y media`;
+      if (dec === 15) return `${ent} horas y cuarto`;
+      if (dec === 45) return `${ent + 1} horas menos cuarto`;
+      return `${ent} horas y ${dec} minutos`;
     }
 
     function timeToMinutes(hhmm) {
@@ -1409,8 +1443,18 @@
       return yearMap;
     }
 
+    function getTodayDateStr() {
+      const now = new Date();
+      const y = now.getFullYear();
+      const m = String(now.getMonth() + 1).padStart(2, '0');
+      const d = String(now.getDate()).padStart(2, '0');
+      const iso = `${y}-${m}-${d}`;
+      if (y === 2026 || y === 2027) return iso;
+      return '2026-11-21';
+    }
+
     function buildInitialState() {
-      const todayStr = '2026-11-21';
+      const todayStr = getTodayDateStr();
       const params = new URLSearchParams(window.location.search);
       const startUnlocked = params.get('modo') === 'madre';
 
@@ -1557,26 +1601,165 @@
     // =========================================================================
     // PORTADA GIGANTE DIARIA ("HOY" Y "MAÑANA") + VOZ EN ESPAÑOL
     // =========================================================================
+
+    // =========================================================================
+    // SERVICIO DE TIEMPO (OPEN-METEO MATARÓ) Y HORA HABLADA EN ESPAÑOL
+    // =========================================================================
+    let currentMataroWeather = null;
+
+    function decodeWMOWeather(code) {
+      if (code === 0) return { icon: '☀️', text: 'cielo despejado y soleado' };
+      if (code === 1 || code === 2 || code === 3) return { icon: '⛅', text: 'algunas nubes y claros' };
+      if (code === 45 || code === 48) return { icon: '🌫️', text: 'algo de niebla' };
+      if ((code >= 51 && code <= 67) || (code >= 80 && code <= 82)) return { icon: '🌧️', text: 'posibilidad de llovizna o lluvia' };
+      if (code >= 71 && code <= 77) return { icon: '🌨️', text: 'nieve' };
+      if (code >= 95) return { icon: '⛈️', text: 'probabilidad de tormenta' };
+      return { icon: '🌤️', text: 'tiempo suave y agradable' };
+    }
+
+    async function fetchMataroWeather() {
+      try {
+        const url = 'https://api.open-meteo.com/v1/forecast?latitude=41.5381&longitude=2.4447&current=temperature_2m,apparent_temperature,weather_code&timezone=Europe%2FMadrid';
+        const res = await fetch(url);
+        if (!res.ok) throw new Error('API meteorológica no disponible');
+        const data = await res.json();
+        if (data && data.current) {
+          const wInfo = decodeWMOWeather(data.current.weather_code);
+          currentMataroWeather = {
+            temp: Math.round(data.current.temperature_2m * 10) / 10,
+            apparent: Math.round(data.current.apparent_temperature * 10) / 10,
+            code: data.current.weather_code,
+            icon: wInfo.icon,
+            text: wInfo.text
+          };
+          updateWeatherUI();
+        }
+      } catch (err) {
+        currentMataroWeather = {
+          temp: 17,
+          apparent: 17,
+          code: 1,
+          icon: '🌤️',
+          text: 'temperatura agradable'
+        };
+        updateWeatherUI();
+      }
+    }
+
+    function updateWeatherUI() {
+      const clockEl = document.getElementById('fpLiveClock');
+      const wIconEl = document.getElementById('fpWeatherIcon');
+      const wTextEl = document.getElementById('fpWeatherText');
+
+      const now = new Date();
+      const hStr = String(now.getHours()).padStart(2, '0');
+      const mStr = String(now.getMinutes()).padStart(2, '0');
+      if (clockEl) {
+        clockEl.textContent = `${hStr}:${mStr} horas`;
+      }
+
+      if (currentMataroWeather && wIconEl && wTextEl) {
+        wIconEl.textContent = currentMataroWeather.icon;
+        wTextEl.textContent = `${currentMataroWeather.temp} °C · ${currentMataroWeather.text}`;
+      }
+    }
+
+    function getSpanishSpokenTime() {
+      const now = new Date();
+      const h = now.getHours();
+      const m = now.getMinutes();
+
+      let saludo = 'Buenos días';
+      let momento = 'de la mañana';
+      if (h >= 14 && h < 21) {
+        saludo = 'Buenas tardes';
+        momento = 'de la tarde';
+      } else if (h >= 21 || h < 6) {
+        saludo = 'Buenas noches';
+        momento = 'de la noche';
+      }
+
+      const h12 = (h % 12 === 0) ? 12 : (h % 12);
+      const prefijo = (h12 === 1) ? 'Es la una' : `Son las ${h12}`;
+
+      let minTexto = '';
+      if (m === 0) {
+        minTexto = 'en punto';
+      } else if (m === 15) {
+        minTexto = 'y cuarto';
+      } else if (m === 30) {
+        minTexto = 'y media';
+      } else if (m === 45) {
+        minTexto = 'menos cuarto';
+      } else {
+        minTexto = `y ${m} minutos`;
+      }
+
+      return {
+        saludo,
+        fullTimeStr: `${prefijo} ${minTexto} ${momento}`
+      };
+    }
+
     function buildSpeechMessageForDate(dateStr) {
+      const timeInfo = getSpanishSpokenTime();
       const info = getDayHoursBreakdown(dateStr);
       const dateLabel = formatSpanishLongDate(dateStr);
-      const parts = [`Aviso para ${dateLabel}.`];
+      const parts = [];
 
-      if (info.holidayName) {
-        parts.push(`Festivo en Mataró: ${info.holidayName}.`);
+      // 1. Saludo personalizado con su nombre y la hora
+      parts.push(`${timeInfo.saludo}, señora Vicenta.`);
+      parts.push(`${timeInfo.fullTimeStr}.`);
+
+      // 2. Temperatura y tiempo exacto en Mataró
+      if (currentMataroWeather) {
+        const roundedTemp = Math.round(currentMataroWeather.temp);
+        parts.push(`En Mataró tenemos ahora mismo una temperatura de ${roundedTemp} grados, con ${currentMataroWeather.text}.`);
       }
 
-      if (!info.hasService) {
-        parts.push('Hoy no viene nadie programado. Cero horas.');
+      // 3. Fecha del día
+      const isToday = (dateStr === getTodayDateStr());
+      if (isToday) {
+        parts.push(`Hoy es ${dateLabel}.`);
       } else {
+        parts.push(`Para el ${dateLabel}:`);
+      }
+
+      // 4. Si es festivo
+      if (info.holidayName) {
+        parts.push(`Tenga en cuenta que ${isToday ? 'hoy ' : ''}es fiesta oficial en Mataró por ser ${info.holidayName}.`);
+      }
+
+      // 5. Qué le toca hoy explicado en palabras completas (horas)
+      if (!info.hasService) {
+        parts.push(isToday ? 'Para hoy no tiene nadie programado, no viene nadie. Tiene el día totalmente libre para estar tranquila y descansar a gusto.' : 'Para ese día no tiene nadie programado, no viene nadie. Día libre para descansar.');
+      } else {
+        parts.push(isToday ? 'Para hoy le toca:' : 'Le toca:');
         if (info.cleanHours > 0) {
-          parts.push(`Limpieza de ${info.entry.clean.start} a ${info.entry.clean.end}, ${formatHoursES(info.cleanHours)}.`);
+          const momento = (timeToMinutes(info.entry.clean.start) < 14 * 60) ? 'por la mañana ' : 'por la tarde ';
+          parts.push(`Servicio de limpieza ${momento}de ${info.entry.clean.start} a ${info.entry.clean.end}, que son ${formatHoursSpokenES(info.cleanHours)}.`);
         }
         if (info.walkHours > 0) {
-          parts.push(`Paseo de ${info.entry.walk.start} a ${info.entry.walk.end}, ${formatHoursES(info.walkHours)}.`);
+          const momento = (timeToMinutes(info.entry.walk.start) >= 14 * 60) ? 'por la tarde ' : 'por la mañana ';
+          parts.push(`Y servicio de paseo ${momento}de ${info.entry.walk.start} a ${info.entry.walk.end}, que son ${formatHoursSpokenES(info.walkHours)}.`);
         }
-        parts.push(`Total del día: ${formatHoursES(info.totalHours)}.`);
+        parts.push(`En total ${isToday ? 'hoy ' : ''}son ${formatHoursSpokenES(info.totalHours)}.`);
       }
+
+      // 6. Adelanto del día siguiente
+      const tomorrowStr = addDaysStr(dateStr, 1);
+      const tomorrowInfo = getDayHoursBreakdown(tomorrowStr);
+      if (tomorrowInfo.hasService) {
+        const tParts = [];
+        if (tomorrowInfo.cleanHours > 0) tParts.push(`limpieza de ${tomorrowInfo.entry.clean.start} a ${tomorrowInfo.entry.clean.end} (${formatHoursSpokenES(tomorrowInfo.cleanHours)})`);
+        if (tomorrowInfo.walkHours > 0) tParts.push(`paseo de ${tomorrowInfo.entry.walk.start} a ${tomorrowInfo.entry.walk.end} (${formatHoursSpokenES(tomorrowInfo.walkHours)})`);
+        parts.push(`${isToday ? 'Para mañana' : 'Al día siguiente'}, ${formatSpanishLongDate(tomorrowStr)}, le tocará: ${tParts.join(' y ')}.`);
+      } else {
+        parts.push(`${isToday ? 'Mañana' : 'Al día siguiente'} descanso, sin servicio programado.`);
+      }
+
+      // 7. Cierre afectuoso de su hijo Domingo
+      parts.push('Que pase un día muy feliz y tranquilo. Recuerde que su hijo Domingo está siempre pendiente de usted para lo que necesite.');
 
       return parts.join(' ');
     }
@@ -1626,16 +1809,8 @@
     }
 
     function speakCurrentDayAlert() {
-      const todayStr = state.selectedDateStr;
-      const tomorrowStr = addDaysStr(todayStr, 1);
-      const tomorrowInfo = getDayHoursBreakdown(tomorrowStr);
-      let msg = buildSpeechMessageForDate(todayStr);
-
-      if (tomorrowInfo.hasService) {
-        msg += ` Mañana: ${tomorrowInfo.cleanHours > 0 ? `limpieza ${tomorrowInfo.entry.clean.start} a ${tomorrowInfo.entry.clean.end}` : ''}${tomorrowInfo.cleanHours > 0 && tomorrowInfo.walkHours > 0 ? ' y ' : ''}${tomorrowInfo.walkHours > 0 ? `paseo ${tomorrowInfo.entry.walk.start} a ${tomorrowInfo.entry.walk.end}` : ''}.`;
-      } else {
-        msg += ' Mañana no hay servicio programado.';
-      }
+      updateWeatherUI();
+      const msg = buildSpeechMessageForDate(state.selectedDateStr);
       speakText(msg);
     }
 
@@ -1869,11 +2044,11 @@
     }
 
     function goToToday() {
-      state.selectedDateStr = '2026-11-21';
+      state.selectedDateStr = getTodayDateStr();
       persistState();
       renderAll();
       syncWheelsToState(true);
-      showToast('Fecha posicionada en 21 de Noviembre de 2026.');
+      showToast('Fecha posicionada en el día de hoy.');
     }
 
     function stepDay(delta) {
@@ -2639,6 +2814,8 @@
       syncWheelsToState(false);
       renderAll();
       initFullScreenDayAlertOnOpen();
+      fetchMataroWeather();
+      setInterval(updateWeatherUI, 30000);
     });
   </script>
 </body>
