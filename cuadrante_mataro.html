@@ -335,11 +335,11 @@
        ===================================================================== -->
   <div id="mainAppShell" class="max-w-4xl mx-auto px-2.5 sm:px-4 pt-2 sm:pt-3 space-y-3">
 
-    <!-- Cabecera superior compacta: Izquierda = Logo + Acciones | Derecha = Ruletillas (66px) -->
+    <!-- Cabecera superior compacta: Fila 1 = Perfil + Acciones | Fila 2 = Ruletillas Fecha + Hoy -->
     <header class="rounded-2xl bg-slate-950 text-white p-2.5 sm:p-3.5 shadow-lg border-2 border-slate-800 pt-11 sm:pt-3.5 no-print">
-      <div class="flex items-start justify-between gap-2">
-        <!-- Columna izquierda: Logo de Vicenta y botones compactos -->
-        <div class="flex flex-col gap-1.5 min-w-0">
+      <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2.5 sm:gap-3">
+        <!-- Fila superior en móvil: Logo de Vicenta, teléfono y botones de acción -->
+        <div class="flex items-center justify-between w-full sm:w-auto gap-2">
           <div class="flex items-center gap-2">
             <img
               id="headerVicentaLogo"
@@ -354,9 +354,9 @@
               <button
                 type="button"
                 onclick="openFullScreenAlert()"
-                class="px-2.5 py-1 rounded-lg bg-pink-600 hover:bg-pink-500 text-white text-[11px] font-black cursor-pointer text-left"
+                class="px-2.5 py-1 rounded-lg bg-pink-600 hover:bg-pink-500 text-white text-[11px] font-black cursor-pointer text-left flex items-center gap-1"
               >
-                Aviso Hoy
+                <span>🔊</span><span>Aviso Hoy</span>
               </button>
               <a
                 href="tel:665784402"
@@ -367,18 +367,18 @@
             </div>
           </div>
 
-          <div class="flex flex-wrap items-center gap-1.5">
+          <div class="flex items-center gap-1.5 shrink-0">
             <button
               type="button"
               onclick="openCoordinationModal()"
-              class="px-2.5 py-1 rounded-lg bg-amber-400 hover:bg-amber-300 text-slate-950 text-[11px] font-black cursor-pointer"
+              class="px-2 py-1 rounded-lg bg-amber-400 hover:bg-amber-300 text-slate-950 text-[11px] font-black cursor-pointer"
             >
               Teléfonos
             </button>
             <button
               type="button"
               onclick="openLogoSettingsModal()"
-              class="px-2.5 py-1 rounded-lg bg-pink-900 hover:bg-pink-800 text-pink-100 text-[11px] font-black cursor-pointer"
+              class="px-2 py-1 rounded-lg bg-pink-900 hover:bg-pink-800 text-pink-100 text-[11px] font-black cursor-pointer"
             >
               Logo
             </button>
@@ -386,29 +386,29 @@
               id="btnTopPinLock"
               type="button"
               onclick="handlePinButtonClick()"
-              class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-white text-[11px] font-black cursor-pointer"
+              class="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-white text-[11px] font-black cursor-pointer"
             >
               PIN
             </button>
           </div>
         </div>
 
-        <!-- Columna derecha: Ruletillas compactas tipo iPhone (Día · Mes · Año) + Hoy -->
-        <div class="flex flex-col items-end shrink-0">
-          <div class="flex items-center justify-between w-full gap-1.5 mb-1">
+        <!-- Ruletillas selectoras (Día · Mes · Año) + botón Hoy (Separado, sin solaparse nunca) -->
+        <div class="flex items-center justify-between sm:justify-end w-full sm:w-auto gap-2 pt-2 border-t border-slate-800 sm:border-t-0 sm:pt-0">
+          <div class="flex items-center gap-1.5">
             <span class="text-[10px] font-black uppercase tracking-wider text-pink-300">
               Fecha
             </span>
             <button
               type="button"
               onclick="goToToday()"
-              class="px-2 py-0.5 rounded-md bg-pink-600 hover:bg-pink-500 text-white text-[10px] font-black cursor-pointer"
+              class="px-2.5 py-1 rounded-md bg-pink-600 hover:bg-pink-500 text-white text-[10px] font-black cursor-pointer"
             >
-              Hoy
+              ⭐ Hoy
             </button>
           </div>
 
-          <div class="flex items-center gap-1">
+          <div class="flex items-center gap-1 shrink-0">
             <!-- Ruleta Día -->
             <div class="flex flex-col items-center">
               <span class="text-[9px] font-bold text-slate-400 mb-0.5">DÍA</span>
