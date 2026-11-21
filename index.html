@@ -882,7 +882,7 @@
           <div class="flex items-center justify-between">
             <label class="flex items-center gap-2 font-black text-sm text-slate-950 cursor-pointer">
               <input id="editWalkEnabled" type="checkbox" onchange="updateEditModalPreview()" class="w-5 h-5 accent-pink-600" />
-              <span>🚶♀️ Servicio de Paseo</span>
+              <span>🚶 Servicio de Paseo</span>
             </label>
             <span id="editWalkHoursLabel" class="text-xs font-black text-pink-900">0,0 h</span>
           </div>
@@ -1327,6 +1327,18 @@
     function formatHoursES(hours) {
       const rounded = Math.round(hours * 100) / 100;
       return `${rounded.toFixed(1).replace('.', ',')} h`;
+    }
+
+        const ICON_WOMAN_WALK = `<svg class="w-3.5 h-3.5 inline-block text-emerald-700 shrink-0" viewBox="0 0 24 24" fill="currentColor"><circle cx="13" cy="3.5" r="2"/><path d="M11.5 3.2c-.8.3-1.5 1-1.8 1.8-.2.6-.1 1.2.2 1.7" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><path d="M9.8 8.9L7 23h2.1l1.8-8 2.1 2v6h2v-7.5l-2.1-2 .6-3c1.3 1.5 3.3 2.5 5.5 2.5v-2c-1.9 0-3.5-1-4.3-2.4l-1-1.6c-.4-.6-1-1-1.7-1-.3 0-.5.1-.8.1L6 9.3V14h2V9.8l1.8-.9z"/></svg>`;
+
+    function formatCompactCellHours(hours) {
+      if (hours <= 0) return '0h';
+      if (Math.abs(hours - 1.5) < 0.05) return '1,5h';
+      if (Math.abs(hours - 2.0) < 0.05) return '2h';
+      if (Math.abs(hours - 1.0) < 0.05) return '1h';
+      if (Math.abs(hours - 3.5) < 0.05) return '3,5h';
+      if (Number.isInteger(hours)) return `${hours}h`;
+      return `${hours.toFixed(1).replace('.', ',')}h`;
     }
 
     function formatHoursSpokenES(hours) {
@@ -1863,7 +1875,7 @@
         if (todayInfo.walkHours > 0) {
           lines.push(
             `<div class="px-3.5 py-2.5 rounded-xl bg-white/90 border-2 border-pink-400 flex items-center justify-between gap-2">
-              <span>🚶♀️ <strong>Paseo:</strong> ${todayInfo.entry.walk.start} a ${todayInfo.entry.walk.end}</span>
+              <span>🚶 <strong>Paseo:</strong> ${todayInfo.entry.walk.start} a ${todayInfo.entry.walk.end}</span>
               <span class="px-2.5 py-0.5 rounded-lg bg-pink-600 text-white text-sm font-black">${formatHoursES(todayInfo.walkHours)}</span>
             </div>`
           );
@@ -2128,7 +2140,7 @@
       if (info.walkHours > 0) {
         rows.push(
           `<div class="px-3 py-2 rounded-xl bg-white border-2 border-pink-400 flex items-center justify-between">
-            <span>🚶♀️ Paseo (${info.entry.walk.start} – ${info.entry.walk.end})</span>
+            <span>🚶 Paseo (${info.entry.walk.start} – ${info.entry.walk.end})</span>
             <span class="font-black text-pink-900">${formatHoursES(info.walkHours)}</span>
           </div>`
         );
@@ -2188,7 +2200,7 @@
             🧹 Limpieza: ${info.cleanHours > 0 ? `${info.entry.clean.start} a ${info.entry.clean.end} (${formatHoursES(info.cleanHours)})` : 'No'}
           </p>
           <p class="text-sm font-bold text-slate-800 mt-1">
-            🚶♀️ Paseo: ${info.walkHours > 0 ? `${info.entry.walk.start} a ${info.entry.walk.end} (${formatHoursES(info.walkHours)})` : 'No'}
+            🚶 Paseo: ${info.walkHours > 0 ? `${info.entry.walk.start} a ${info.entry.walk.end} (${formatHoursES(info.walkHours)})` : 'No'}
           </p>
           ${editBtnHtml}
         </div>
@@ -2242,7 +2254,7 @@
         if (info.walkHours > 0) {
           badges.push(
             `<div class="mt-1 py-1.5 px-2 rounded-xl bg-white border-2 border-emerald-500 text-slate-950 text-xs sm:text-sm font-black leading-tight shadow-2xs">
-              🚶♀️ Paseo: ${info.entry.walk.start}–${info.entry.walk.end} (${formatHoursES(info.walkHours)})
+              🚶 Paseo: ${info.entry.walk.start}–${info.entry.walk.end} (${formatHoursES(info.walkHours)})
             </div>`
           );
         }
@@ -2337,7 +2349,6 @@
 
       document.getElementById('monthViewTitle').textContent = `${MONTH_NAMES[m0]} ${yr}`;
 
-      // Recorremos las semanas del mes mostrando únicamente Lunes a Viernes (5 columnas)
       const firstOfMonth = new Date(yr, m0, 1, 12, 0, 0);
       const lastOfMonth = new Date(yr, m0 + 1, 0, 12, 0, 0);
 
@@ -2352,53 +2363,38 @@
           const info = getDayHoursBreakdown(ds);
           const isSelected = ds === state.selectedDateStr;
 
-          let cellBg = inCurrentMonth ? 'bg-white' : 'bg-slate-100/70 opacity-60';
+          let cellBg = inCurrentMonth ? 'bg-white' : 'bg-slate-100/60 opacity-40';
+          let activeBorderClass = 'text-slate-950';
+
           if (isSelected) {
-            cellBg = 'pink-selected-cell';
+            cellBg = 'bg-emerald-50/80 ring-2 ring-emerald-600 shadow-sm';
+            activeBorderClass = 'text-emerald-800';
           } else if (inCurrentMonth && info.hasService) {
-            cellBg = 'bg-pink-50/75';
+            cellBg = 'bg-white hover:bg-slate-50/80';
           }
 
           const miniTags = [];
           if (inCurrentMonth) {
             if (info.cleanHours > 0) {
-              miniTags.push(`<div class="mt-0.5 py-0.5 px-1 rounded-md bg-white border-2 border-pink-400 text-slate-950 text-[10px] sm:text-[11px] font-black truncate flex items-center justify-center gap-1 shadow-2xs"><span>🧹</span><span>${formatHoursES(info.cleanHours)}</span></div>`);
+              miniTags.push(`<div class="py-0.5 px-1 rounded-md bg-white border-2 border-pink-400 text-slate-950 text-[10px] sm:text-[11px] font-black flex items-center justify-center gap-1 shadow-2xs"><span>🧹</span><span>${formatCompactCellHours(info.cleanHours)}</span></div>`);
             }
             if (info.walkHours > 0) {
-              miniTags.push(`<div class="mt-0.5 py-0.5 px-1 rounded-md bg-white border-2 border-emerald-500 text-slate-950 text-[10px] sm:text-[11px] font-black truncate flex items-center justify-center gap-1 shadow-2xs"><span>🚶♀️</span><span>${formatHoursES(info.walkHours)}</span></div>`);
+              miniTags.push(`<div class="py-0.5 px-1 rounded-md bg-white border-2 border-emerald-500 text-slate-950 text-[10px] sm:text-[11px] font-black flex items-center justify-center gap-1 shadow-2xs">${ICON_WOMAN_WALK}<span>${formatCompactCellHours(info.walkHours)}</span></div>`);
             }
             if (info.holidayName) {
-              miniTags.push(`<div class="mt-0.5 py-0.5 px-1 rounded-md bg-amber-100 border border-amber-400 text-amber-950 text-[10px] font-black truncate text-center">🏛️ Festivo</div>`);
+              miniTags.push(`<div class="py-0.5 px-1 rounded-md bg-amber-100 border border-amber-400 text-amber-950 text-[10px] font-black text-center">🏛️ Festivo</div>`);
             }
-          }
-
-          const hasMultipleServices = (info.cleanHours > 0 && info.walkHours > 0);
-          const topHoursBadge = (inCurrentMonth && hasMultipleServices)
-            ? `<span class="text-[10px] font-black px-1.5 py-0.2 rounded-md bg-slate-900 text-white leading-tight">${formatHoursES(info.totalHours)}</span>`
-            : '';
-
-          // Selección clara con borde azul vibrante y fondo limpio
-          let activeBorderClass = '';
-          if (isSelected) {
-            cellBg = 'bg-blue-50/90 ring-2 ring-blue-600 shadow-sm';
-            activeBorderClass = 'text-blue-800';
-          } else if (inCurrentMonth && info.hasService) {
-            cellBg = 'bg-slate-50/70 hover:bg-slate-100/80';
-            activeBorderClass = 'text-slate-950';
-          } else {
-            activeBorderClass = 'text-slate-950';
           }
 
           cells.push(
             `<div
               onclick="selectDay('${ds}')"
-              class="workweek-cell ${cellBg} p-1.5 min-h-[82px] sm:min-h-[96px] cursor-pointer transition flex flex-col justify-between rounded-lg"
+              class="workweek-cell ${cellBg} p-1.5 min-h-[84px] sm:min-h-[96px] cursor-pointer transition flex flex-col justify-between rounded-xl border border-slate-300 shadow-2xs"
             >
-              <div class="flex items-center justify-between border-b border-slate-200/60 pb-0.5">
+              <div class="flex items-center justify-between border-b border-slate-100 pb-0.5">
                 <span class="text-sm sm:text-base font-black ${activeBorderClass}">${dObj.getDate()}</span>
-                ${topHoursBadge}
               </div>
-              <div class="space-y-1 mt-1">${miniTags.join('')}</div>
+              <div class="flex-1 flex flex-col justify-center space-y-1 mt-1">${miniTags.join('')}</div>
             </div>`
           );
         }
@@ -2442,7 +2438,7 @@
                 ${ms.isBalanced ? 'CUADRADO' : 'REVISAR'}
               </span>
             </div>
-            <p class="text-xs font-bold text-slate-800 mt-1.5">🚶♀️ Paseo: ${formatHoursES(ms.walkSum)} / 39,0 h</p>
+            <p class="text-xs font-bold text-slate-800 mt-1.5">🚶 Paseo: ${formatHoursES(ms.walkSum)} / 39,0 h</p>
             <p class="text-xs font-bold text-slate-800">🧹 Limpieza: ${formatHoursES(ms.cleanSum)} / 6,0 h</p>
             <p class="text-[11px] font-black text-pink-900 mt-1">Sobrante: +${formatHoursES(ms.surplusTotal)}</p>
           </div>`
@@ -2845,7 +2841,7 @@
             `DTSTAMP:${nowStamp}`,
             `DTSTART:${yStr}${mStr}${dStr}T${wsH}${wsM}00`,
             `DTEND:${yStr}${mStr}${dStr}T${weH}${weM}00`,
-            `SUMMARY:🚶♀️ Paseo Vicenta (${formatHoursES(info.walkHours)})`,
+            `SUMMARY:🚶 Paseo Vicenta (${formatHoursES(info.walkHours)})`,
             `DESCRIPTION:Servicio de paseo para Vicenta Serrano Machín en Mataró. Coordinador: Domingo (665 78 44 02).`,
             'LOCATION:Mataró, Barcelona',
             'STATUS:CONFIRMED',
