@@ -11,24 +11,18 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Vicenta" />
 
-  <!-- Metadatos oficiales para previsualización en WhatsApp y Mensajería -->
-  <meta property="og:type" content="website" />
-  <meta property="og:site_name" content="Cuadrante Vicenta · Mataró" />
-  <meta property="og:title" content="Cuadrante Servicio y Paseo — Vicenta Serrano Machín" />
-  <meta property="og:description" content="Avisos del día con voz, horarios de limpieza y paseos para Vicenta Serrano Machín en Mataró. Coordinado por Domingo Martínez Serrano." />
-  <meta property="og:url" content="https://domitrader.github.io/cuadrante-vicenta/" />
+  <!-- Metadatos para compartir por WhatsApp / Mensajería -->
+  <meta property="og:title" content="Cuadrante de Servicio y Paseo · Vicenta (Mataró)" />
+  <meta property="og:description" content="Avisos diarios con voz, horarios de limpieza y paseos para Vicenta Serrano Machín en Mataró. Coordinado por Domingo Martínez Serrano." />
   <meta property="og:image" content="https://domitrader.github.io/cuadrante-vicenta/whatsapp-thumb.jpg" />
   <meta property="og:image:secure_url" content="https://domitrader.github.io/cuadrante-vicenta/whatsapp-thumb.jpg" />
   <meta property="og:image:type" content="image/jpeg" />
   <meta property="og:image:width" content="600" />
   <meta property="og:image:height" content="600" />
-  <meta property="og:image:alt" content="Retrato de Vicenta Serrano Machín" />
+  <meta property="og:type" content="website" />
   <meta name="twitter:card" content="summary" />
-  <meta name="twitter:title" content="Cuadrante Vicenta · Mataró" />
-  <meta name="twitter:description" content="Avisos con voz, horarios de limpieza y paseos para Vicenta Serrano Machín en Mataró." />
   <meta name="twitter:image" content="https://domitrader.github.io/cuadrante-vicenta/whatsapp-thumb.jpg" />
   <link rel="image_src" href="https://domitrader.github.io/cuadrante-vicenta/whatsapp-thumb.jpg" />
-
   <title>Cuadrante Servicio y Paseo — Vicenta Serrano Machín · Mataró (2026–2027)</title>
   <meta name="description" content="Cuadrante de limpieza y paseo para Vicenta Serrano Machín en Mataró (Cataluña), años naturales 2026 y 2027, gestionado por Domingo Martínez Serrano." />
   <meta name="theme-color" content="#0f172a" />
@@ -483,13 +477,13 @@
               FESTIVO MATARÓ
             </span>
           </div>
-          <h2 id="selDayTitle" class="text-xl sm:text-3xl font-black text-slate-950 mt-1">
+          <h2 id="selDayTitle" class="text-lg sm:text-2xl font-black text-slate-950 mt-1">
             Lunes, 23 de Noviembre de 2026
           </h2>
         </div>
 
         <div class="flex items-center gap-1.5">
-          <span id="selDayHoursPill" class="px-3.5 py-1.5 rounded-xl bg-slate-950 text-white text-sm sm:text-base font-black">
+          <span id="selDayHoursPill" class="px-3 py-1 rounded-xl bg-slate-950 text-white text-xs sm:text-sm font-black">
             0,0 h
           </span>
           <button
@@ -510,7 +504,7 @@
         </div>
       </div>
 
-      <div id="selDayScheduleList" class="mt-3 space-y-2 text-base sm:text-lg font-extrabold text-slate-900">
+      <div id="selDayScheduleList" class="mt-2.5 space-y-1.5 text-sm sm:text-base font-extrabold text-slate-900">
         <!-- Se rellena dinámicamente -->
       </div>
     </section>
@@ -527,16 +521,16 @@
           <span id="quotaMonthLabel" class="text-[11px] font-black uppercase tracking-wider text-emerald-950">
             NOVIEMBRE 2026 · CUADRE MENSUAL
           </span>
-          <p id="quotaMonthStatus" class="text-base sm:text-lg font-black text-emerald-950">
+          <p id="quotaMonthStatus" class="text-sm sm:text-base font-black text-emerald-950">
             MES CUADRADO · Paseo 39,0h / 39,0h · Limpieza 6,0h / 6,0h
           </p>
         </div>
-        <span id="quotaSurplusBadge" class="px-3 py-1.5 rounded-xl bg-emerald-900 text-white text-xs sm:text-sm font-black">
+        <span id="quotaSurplusBadge" class="px-2.5 py-1 rounded-lg bg-emerald-900 text-white text-xs font-black">
           Sobrante mes: 0,0 h
         </span>
       </div>
 
-      <p id="quotaYearSummary" class="mt-2 text-xs sm:text-sm font-extrabold text-slate-800">
+      <p id="quotaYearSummary" class="mt-1.5 text-xs font-extrabold text-slate-800">
         Cierre Año 2026: Paseo 468,0h / 468,0h · Limpieza 72,0h / 72,0h
       </p>
     </section>
@@ -589,7 +583,7 @@
             <span class="text-[10px] font-black uppercase tracking-wider text-pink-700">
               Semana Lunes a Viernes (5 días)
             </span>
-            <h3 id="weekRangeTitle" class="text-base sm:text-xl font-black text-slate-950 truncate">
+            <h3 id="weekRangeTitle" class="text-xs sm:text-base font-black text-slate-950 truncate">
               16 Nov – 20 Nov 2026
             </h3>
             <p id="weekHoursSummary" class="text-[11px] font-extrabold text-slate-700">
@@ -608,11 +602,11 @@
 
         <!-- Cabecera de 5 columnas L-V -->
         <div class="workweek-grid-5 bg-slate-950 text-white rounded-t-xl overflow-hidden">
-          <div class="workweek-cell py-2 text-center text-xs sm:text-sm font-black">LUN</div>
-          <div class="workweek-cell py-2 text-center text-xs sm:text-sm font-black">MAR</div>
-          <div class="workweek-cell py-2 text-center text-xs sm:text-sm font-black">MIÉ</div>
-          <div class="workweek-cell py-2 text-center text-xs sm:text-sm font-black">JUE</div>
-          <div class="workweek-cell py-2 text-center text-xs sm:text-sm font-black">VIE</div>
+          <div class="workweek-cell py-2 text-center text-[11px] sm:text-xs font-black">LUN</div>
+          <div class="workweek-cell py-2 text-center text-[11px] sm:text-xs font-black">MAR</div>
+          <div class="workweek-cell py-2 text-center text-[11px] sm:text-xs font-black">MIÉ</div>
+          <div class="workweek-cell py-2 text-center text-[11px] sm:text-xs font-black">JUE</div>
+          <div class="workweek-cell py-2 text-center text-[11px] sm:text-xs font-black">VIE</div>
         </div>
 
         <!-- Celdas semanales L-V -->
@@ -640,7 +634,7 @@
             <span class="text-[10px] font-black uppercase tracking-wider text-pink-700">
               Calendario Mensual Lunes a Viernes
             </span>
-            <h3 id="monthViewTitle" class="text-lg sm:text-2xl font-black text-slate-950">
+            <h3 id="monthViewTitle" class="text-sm sm:text-lg font-black text-slate-950">
               Noviembre 2026
             </h3>
           </div>
@@ -656,11 +650,11 @@
 
         <!-- Cabecera de 5 columnas L-V -->
         <div class="workweek-grid-5 bg-slate-950 text-white rounded-t-xl overflow-hidden">
-          <div class="workweek-cell py-2 text-center text-xs sm:text-sm font-black">LUN</div>
-          <div class="workweek-cell py-2 text-center text-xs sm:text-sm font-black">MAR</div>
-          <div class="workweek-cell py-2 text-center text-xs sm:text-sm font-black">MIÉ</div>
-          <div class="workweek-cell py-2 text-center text-xs sm:text-sm font-black">JUE</div>
-          <div class="workweek-cell py-2 text-center text-xs sm:text-sm font-black">VIE</div>
+          <div class="workweek-cell py-2 text-center text-[11px] sm:text-xs font-black">LUN</div>
+          <div class="workweek-cell py-2 text-center text-[11px] sm:text-xs font-black">MAR</div>
+          <div class="workweek-cell py-2 text-center text-[11px] sm:text-xs font-black">MIÉ</div>
+          <div class="workweek-cell py-2 text-center text-[11px] sm:text-xs font-black">JUE</div>
+          <div class="workweek-cell py-2 text-center text-[11px] sm:text-xs font-black">VIE</div>
         </div>
 
         <!-- Celdas mensuales L-V -->
@@ -729,7 +723,7 @@
         id="navTabDay"
         type="button"
         onclick="setViewMode('day')"
-        class="py-3 px-2 rounded-full text-sm sm:text-base font-black text-slate-800 hover:bg-slate-100 transition cursor-pointer"
+        class="py-2.5 px-2 rounded-full text-xs sm:text-sm font-black text-slate-800 hover:bg-slate-100 transition cursor-pointer"
       >
         Día
       </button>
@@ -737,7 +731,7 @@
         id="navTabWeek"
         type="button"
         onclick="setViewMode('week')"
-        class="py-3 px-2 rounded-full text-sm sm:text-base font-black bg-pink-600 text-white shadow transition cursor-pointer"
+        class="py-2.5 px-2 rounded-full text-xs sm:text-sm font-black bg-pink-600 text-white shadow transition cursor-pointer"
       >
         Semana
       </button>
@@ -745,7 +739,7 @@
         id="navTabMonth"
         type="button"
         onclick="setViewMode('month')"
-        class="py-3 px-2 rounded-full text-sm sm:text-base font-black text-slate-800 hover:bg-slate-100 transition cursor-pointer"
+        class="py-2.5 px-2 rounded-full text-xs sm:text-sm font-black text-slate-800 hover:bg-slate-100 transition cursor-pointer"
       >
         Mes
       </button>
@@ -753,7 +747,7 @@
         id="navTabYear"
         type="button"
         onclick="setViewMode('year')"
-        class="py-3 px-2 rounded-full text-sm sm:text-base font-black text-slate-800 hover:bg-slate-100 transition cursor-pointer"
+        class="py-2.5 px-2 rounded-full text-xs sm:text-sm font-black text-slate-800 hover:bg-slate-100 transition cursor-pointer"
       >
         Año
       </button>
@@ -2040,26 +2034,24 @@
 
         const badges = [];
         if (info.holidayName) {
-          badges.push(`<div class="px-2 py-1 rounded-lg bg-amber-300 text-slate-950 text-xs font-black leading-tight text-center">🏛️ Festivo</div>`);
+          badges.push(`<div class="mt-1 px-1 py-0.5 rounded bg-amber-200 text-slate-950 text-[9px] font-black leading-tight">Festivo</div>`);
         }
         if (info.cleanHours > 0) {
           badges.push(
-            `<div class="px-2 py-1.5 rounded-lg bg-white border-2 border-pink-400 text-xs sm:text-sm font-black text-slate-950 leading-tight">
+            `<div class="mt-1 px-1 py-0.5 rounded bg-white border border-pink-400 text-[9px] sm:text-[10px] font-black text-slate-950 leading-tight">
               🧹 ${info.entry.clean.start}–${info.entry.clean.end}
-              <div class="text-[11px] text-pink-700 font-extrabold">${formatHoursES(info.cleanHours)}</div>
             </div>`
           );
         }
         if (info.walkHours > 0) {
           badges.push(
-            `<div class="px-2 py-1.5 rounded-lg bg-pink-600 text-white text-xs sm:text-sm font-black leading-tight">
+            `<div class="mt-1 px-1 py-0.5 rounded bg-pink-600 text-white text-[9px] sm:text-[10px] font-black leading-tight">
               🚶♀️ ${info.entry.walk.start}–${info.entry.walk.end}
-              <div class="text-[11px] text-pink-100 font-extrabold">${formatHoursES(info.walkHours)}</div>
             </div>`
           );
         }
         if (!info.hasService && !info.holidayName) {
-          badges.push(`<div class="mt-4 text-xs font-bold text-slate-400 text-center">Libre</div>`);
+          badges.push(`<div class="mt-2 text-[10px] font-bold text-slate-400">—</div>`);
         }
 
         const editSmallBtn = state.unlocked
@@ -2069,14 +2061,14 @@
         cells.push(
           `<div
             onclick="selectDay('${ds}')"
-            class="workweek-cell ${bgClass} p-2 sm:p-2.5 min-h-[135px] sm:min-h-[150px] flex flex-col justify-between cursor-pointer transition"
+            class="workweek-cell ${bgClass} p-1.5 sm:p-2 min-h-[112px] sm:min-h-[130px] flex flex-col justify-between cursor-pointer transition"
           >
             <div>
-              <div class="flex items-center justify-between border-b border-slate-300 pb-1">
-                <span class="text-lg sm:text-xl font-black ${isSelected ? 'text-pink-700' : 'text-slate-950'}">${dObj.getDate()}</span>
-                <span class="text-xs sm:text-sm font-black px-1.5 py-0.5 rounded bg-slate-950 text-white">${formatHoursES(info.totalHours)}</span>
+              <div class="flex items-center justify-between gap-0.5">
+                <span class="text-xs sm:text-sm font-black ${isSelected ? 'text-pink-800' : 'text-slate-950'}">${dObj.getDate()}</span>
+                <span class="text-[9px] sm:text-[10px] font-black text-slate-700">${formatHoursES(info.totalHours)}</span>
               </div>
-              <div class="space-y-1.5 mt-2">${badges.join('')}</div>
+              ${badges.join('')}
             </div>
             ${editSmallBtn}
           </div>`
@@ -2119,26 +2111,26 @@
           const miniTags = [];
           if (inCurrentMonth) {
             if (info.cleanHours > 0) {
-              miniTags.push(`<div class="px-1.5 py-0.5 rounded-md bg-white border border-pink-400 text-[10px] sm:text-[11px] font-black text-slate-950 truncate flex items-center justify-between"><span>🧹 Limp</span><span>${formatHoursES(info.cleanHours)}</span></div>`);
+              miniTags.push(`<div class="mt-0.5 px-1 rounded bg-white border border-pink-300 text-[8px] sm:text-[9px] font-black text-slate-900 truncate">🧹 ${formatHoursES(info.cleanHours)}</div>`);
             }
             if (info.walkHours > 0) {
-              miniTags.push(`<div class="px-1.5 py-0.5 rounded-md bg-pink-600 text-white text-[10px] sm:text-[11px] font-black truncate flex items-center justify-between"><span>🚶♀️ Paseo</span><span>${formatHoursES(info.walkHours)}</span></div>`);
+              miniTags.push(`<div class="mt-0.5 px-1 rounded bg-pink-600 text-white text-[8px] sm:text-[9px] font-black truncate">🚶♀️ ${formatHoursES(info.walkHours)}</div>`);
             }
             if (info.holidayName) {
-              miniTags.push(`<div class="px-1.5 py-0.5 rounded-md bg-amber-300 text-slate-950 text-[10px] sm:text-[11px] font-black truncate text-center">🏛️ Festivo</div>`);
+              miniTags.push(`<div class="mt-0.5 px-1 rounded bg-amber-200 text-slate-950 text-[8px] font-black truncate">Festivo</div>`);
             }
           }
 
           cells.push(
             `<div
               onclick="selectDay('${ds}')"
-              class="workweek-cell ${cellBg} p-1.5 sm:p-2 min-h-[96px] sm:min-h-[114px] cursor-pointer transition flex flex-col justify-between"
+              class="workweek-cell ${cellBg} p-1 sm:p-1.5 min-h-[76px] sm:min-h-[92px] cursor-pointer transition flex flex-col justify-between"
             >
-              <div class="flex items-center justify-between border-b border-slate-200/70 pb-0.5">
-                <span class="text-base sm:text-lg font-black leading-none ${isSelected ? 'text-pink-700' : 'text-slate-950'}">${dObj.getDate()}</span>
-                ${inCurrentMonth && info.totalHours > 0 ? `<span class="text-[11px] sm:text-xs font-black px-1.5 py-0.5 rounded bg-pink-100 text-pink-900">${formatHoursES(info.totalHours)}</span>` : ''}
+              <div class="flex items-center justify-between">
+                <span class="text-[11px] sm:text-xs font-black ${isSelected ? 'text-pink-800' : 'text-slate-950'}">${dObj.getDate()}</span>
+                ${inCurrentMonth && info.totalHours > 0 ? `<span class="text-[9px] font-black text-pink-900">${formatHoursES(info.totalHours)}</span>` : ''}
               </div>
-              <div class="space-y-1 mt-1">${miniTags.join('')}</div>
+              <div>${miniTags.join('')}</div>
             </div>`
           );
         }
