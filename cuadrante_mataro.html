@@ -514,7 +514,7 @@
             </span>
           </div>
           <h2 id="selDayTitle" class="text-lg sm:text-2xl font-black text-slate-950 mt-1">
-            Lunes, 23 de Noviembre de 2026
+            Sábado, 21 de Noviembre de 2026
           </h2>
         </div>
 
@@ -650,8 +650,13 @@
           <!-- Renderizado en JS -->
         </div>
 
+        <!-- Fin de semana (Sábado y Domingo) interactivo -->
+        <div id="weekGridWeekend" class="mt-2.5">
+          <!-- Renderizado en JS para Sábado y Domingo -->
+        </div>
+
         <p class="text-[11px] font-bold text-slate-600 text-center">
-          Toca cualquier día de Lunes a Viernes para resaltarlo en rosa arriba y ver su detalle. (Sábados y domingos sin servicio ordinario).
+          Toca cualquier día de la semana o del fin de semana para ver su detalle arriba.
         </p>
       </section>
 
@@ -1476,12 +1481,11 @@
         const raw = localStorage.getItem(STORAGE_KEY_STATE);
         if (!raw) return base;
         const parsed = JSON.parse(raw);
-        if (parsed && parsed.years && parsed.years[2026] && parsed.years[2027]) {
+        if (parsed && parsed.years && parsed.years[2026] && parsed.years[2027] && Object.keys(parsed.years[2026]).length > 100) {
           base.years[2026] = parsed.years[2026];
           base.years[2027] = parsed.years[2027];
-          if (parsed.selectedDateStr && /^\d{4}-\d{2}-\d{2}$/.test(parsed.selectedDateStr)) {
-            base.selectedDateStr = parsed.selectedDateStr;
-          }
+          // Al abrir o recargar la app, SIEMPRE iniciamos en el día real de HOY
+          base.selectedDateStr = getTodayDateStr();
           if (['day', 'week', 'month', 'year'].includes(parsed.viewMode)) {
             base.viewMode = parsed.viewMode;
           }
@@ -1810,7 +1814,7 @@
 
     function speakCurrentDayAlert() {
       updateWeatherUI();
-      const msg = buildSpeechMessageForDate(state.selectedDateStr);
+      const msg = buildSpeechMessageForDate(getTodayDateStr());
       speakText(msg);
     }
 
@@ -1820,7 +1824,7 @@
     }
 
     function renderFullScreenAlert() {
-      const todayStr = state.selectedDateStr;
+      const todayStr = getTodayDateStr();
       const tomorrowStr = addDaysStr(todayStr, 1);
       const todayInfo = getDayHoursBreakdown(todayStr);
       const tomorrowInfo = getDayHoursBreakdown(tomorrowStr);
@@ -1882,8 +1886,10 @@
     }
 
     function openFullScreenAlert() {
+      state.selectedDateStr = getTodayDateStr();
       state.splashDismissed = false;
       renderFullScreenAlert();
+      syncWheelsToState(true);
       document.getElementById('fullScreenDayAlert').classList.remove('hidden');
     }
 
@@ -2270,6 +2276,61 @@
 
       gridBody.innerHTML = cells.join('');
       document.getElementById('weekHoursSummary').textContent = `Total Lunes–Viernes: ${formatHoursES(weekTotal)}`;
+
+      // Renderizado del fin de semana (Sábado y Domingo) interactivo
+      const weekendEl = document.getElementById('weekGridWeekend');
+      if (weekendEl) {
+        const satStr = addDaysStr(mondayStr, 5);
+        const sunStr = addDaysStr(mondayStr, 6);
+        const satInfo = getDayHoursBreakdown(satStr);
+        const sunInfo = getDayHoursBreakdown(sunStr);
+        const dSat = parseDateStr(satStr);
+        const dSun = parseDateStr(sunStr);
+        const isSatSelected = satStr === state.selectedDateStr;
+        const isSunSelected = sunStr === state.selectedDateStr;
+        const todayStr = getTodayDateStr();
+
+        weekendEl.innerHTML = `
+          <div class="p-2.5 sm:p-3 rounded-xl border-2 border-slate-300 bg-slate-50">
+            <span class="block text-[10px] font-black uppercase text-slate-600 mb-1.5 tracking-wider">
+              Fin de Semana · Descanso sin servicio
+            </span>
+            <div class="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onclick="selectDay('${satStr}')"
+                class="p-2.5 rounded-xl border-2 text-left cursor-pointer transition-all ${
+                  isSatSelected
+                    ? 'pink-selected-cell border-pink-600 shadow-md ring-2 ring-pink-400'
+                    : 'bg-white border-slate-300 hover:border-pink-400'
+                }"
+              >
+                <div class="flex items-center justify-between">
+                  <span class="text-xs sm:text-sm font-black text-slate-950">SÁBADO ${dSat.getDate()}</span>
+                  ${satStr === todayStr ? '<span class="px-2 py-0.5 rounded-full bg-pink-600 text-white text-[9px] font-black">HOY</span>' : ''}
+                </div>
+                <span class="block text-[11px] font-extrabold text-slate-500 mt-1">0,0 horas (Descanso)</span>
+              </button>
+
+              <button
+                type="button"
+                onclick="selectDay('${sunStr}')"
+                class="p-2.5 rounded-xl border-2 text-left cursor-pointer transition-all ${
+                  isSunSelected
+                    ? 'pink-selected-cell border-pink-600 shadow-md ring-2 ring-pink-400'
+                    : 'bg-white border-slate-300 hover:border-pink-400'
+                }"
+              >
+                <div class="flex items-center justify-between">
+                  <span class="text-xs sm:text-sm font-black text-slate-950">DOMINGO ${dSun.getDate()}</span>
+                  ${sunStr === todayStr ? '<span class="px-2 py-0.5 rounded-full bg-pink-600 text-white text-[9px] font-black">HOY</span>' : ''}
+                </div>
+                <span class="block text-[11px] font-extrabold text-slate-500 mt-1">0,0 horas (Descanso)</span>
+              </button>
+            </div>
+          </div>
+        `;
+      }
     }
 
     function renderMonthView() {
