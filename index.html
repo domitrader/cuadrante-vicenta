@@ -2749,6 +2749,22 @@
           remWalk = 0;
         }
       }
+
+      // Si el mes tiene menos de 20 días laborables (ej. 19 por festivos), repartir el remanente
+      if (remWalk > 0.001) {
+        for (let i = 0; i < workdays.length && remWalk > 0.001; i++) {
+          const ds = workdays[i];
+          const curDur = diffHours(state.years[year][ds].walk.start, state.years[year][ds].walk.end);
+          const add = Math.min(remWalk, 0.5);
+          const newDur = curDur + add;
+          const startMins = 15 * 60 + 40;
+          const endMins = startMins + Math.round(newDur * 60);
+          const endH = pad2(Math.floor(endMins / 60));
+          const endM = pad2(endMins % 60);
+          state.years[year][ds].walk.end = `${endH}:${endM}`;
+          remWalk = Math.round((remWalk - add) * 1000) / 1000;
+        }
+      }
     }
 
     function autoBalanceActiveMonth() {
