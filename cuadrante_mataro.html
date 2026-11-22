@@ -1333,9 +1333,10 @@
 
     function formatCompactCellHours(hours) {
       if (hours <= 0) return '0h';
-      if (Math.abs(hours - 1.5) < 0.05) return '1,5h';
       if (Math.abs(hours - 2.0) < 0.05) return '2h';
+      if (Math.abs(hours - 1.5) < 0.05) return '1,5h';
       if (Math.abs(hours - 1.0) < 0.05) return '1h';
+      if (Math.abs(hours - 0.5) < 0.05) return '30m';
       if (Math.abs(hours - 3.5) < 0.05) return '3,5h';
       if (Number.isInteger(hours)) return `${hours}h`;
       return `${hours.toFixed(1).replace('.', ',')}h`;
@@ -1343,14 +1344,17 @@
 
     function formatHoursSpokenES(hours) {
       if (hours <= 0) return 'cero horas';
+      if (Math.abs(hours - 0.5) < 0.05) return 'media hora';
       if (Math.abs(hours - 1.0) < 0.05) return '1 hora';
       if (Math.abs(hours - 1.5) < 0.05) return '1 hora y media';
+      if (Math.abs(hours - 2.0) < 0.05) return '2 horas';
+      if (Math.abs(hours - 2.5) < 0.05) return '2 horas y media';
+      if (Math.abs(hours - 3.0) < 0.05) return '3 horas';
+      if (Math.abs(hours - 3.5) < 0.05) return '3 horas y media';
       const ent = Math.floor(hours);
       const dec = Math.round((hours % 1) * 60);
       if (dec === 0) return `${ent} horas`;
       if (dec === 30) return `${ent} horas y media`;
-      if (dec === 15) return `${ent} horas y cuarto`;
-      if (dec === 45) return `${ent + 1} horas menos cuarto`;
       return `${ent} horas y ${dec} minutos`;
     }
 
@@ -1420,36 +1424,57 @@
           });
         }
 
-        // Cuadrar Paseo del mes a 39,0 h exactas usando bloques de 2,0h (15:40–17:40) y ajuste residual
-        let remainingWalkHours = MONTHLY_WALK_TARGET;
-        for (let i = 0; i < workdays.length && remainingWalkHours > 0.001; i++) {
-          const dStr = workdays[i];
-          if (remainingWalkHours >= 2.0) {
-            yearMap[dStr].walk = { enabled: true, start: '15:40', end: '17:40' };
-            remainingWalkHours = Math.round((remainingWalkHours - 2.0) * 1000) / 1000;
-          } else {
-            const durMins = Math.round(remainingWalkHours * 60);
-            const startMins = 15 * 60 + 40;
-            const endMins = startMins + durMins;
-            const endH = pad2(Math.floor(endMins / 60));
-            const endM = pad2(endMins % 60);
-            yearMap[dStr].walk = { enabled: true, start: '15:40', end: `${endH}:${endM}` };
-            remainingWalkHours = 0;
-          }
-        }
+        // Cuadrar Paseo del mes a 39,0 h exactas: L-J ordinarios (2h).
+        // Si hay exceso de horas en el mes, LOS VIERNES reducen en tramos de MEDIA HORA (0,5h) o UNA HORA (1,0h).
+        const nonFridays = workdays.filter(ds => parseDateStr(ds).getDay() !== 5);
+        const fridays = workdays.filter(ds => parseDateStr(ds).getDay() === 5);
 
-        // Si el mes tiene menos de 20 días laborables (ej. 19 por festivos), repartir el remanente
-        if (remainingWalkHours > 0.001) {
-          for (let i = 0; i < workdays.length && remainingWalkHours > 0.001; i++) {
-            const dStr = workdays[i];
-            const curDur = diffHours(yearMap[dStr].walk.start, yearMap[dStr].walk.end);
-            const add = Math.min(1.0, remainingWalkHours);
-            const newDur = curDur + add;
-            const endMins = 15 * 60 + 40 + Math.round(newDur * 60);
+        nonFridays.forEach(ds => {
+          yearMap[ds].walk = { enabled: true, start: '15:40', end: '17:40' };
+        });
+
+        let remWalkForFridays = Math.round((MONTHLY_WALK_TARGET - (nonFridays.length * 2.0)) * 1000) / 1000;
+
+        if (fridays.length > 0 && remWalkForFridays <= fridays.length * 2.0 && remWalkForFridays >= 0) {
+          const fDurMap = {};
+          fridays.forEach(fDs => { fDurMap[fDs] = 2.0; });
+          let excessToDeduct = Math.round(((fridays.length * 2.0) - remWalkForFridays) * 10) / 10;
+
+          // Reducir en pasos de media hora (0,5h) o una hora (1,0h) rotativo entre viernes
+          let idx = 0;
+          while (excessToDeduct >= 0.499 && idx < fridays.length * 4) {
+            const fDs = fridays[idx % fridays.length];
+            if (fDurMap[fDs] > 0.5) {
+              fDurMap[fDs] = Math.round((fDurMap[fDs] - 0.5) * 10) / 10;
+              excessToDeduct = Math.round((excessToDeduct - 0.5) * 10) / 10;
+            }
+            idx++;
+          }
+
+          fridays.forEach(fDs => {
+            const dur = fDurMap[fDs];
+            const startMins = 15 * 60 + 40;
+            const endMins = startMins + Math.round(dur * 60);
             const endH = pad2(Math.floor(endMins / 60));
             const endM = pad2(endMins % 60);
-            yearMap[dStr].walk.end = `${endH}:${endM}`;
-            remainingWalkHours = Math.round((remainingWalkHours - add) * 1000) / 1000;
+            yearMap[fDs].walk = { enabled: true, start: '15:40', end: `${endH}:${endM}` };
+          });
+        } else {
+          fridays.forEach(fDs => {
+            yearMap[fDs].walk = { enabled: true, start: '15:40', end: '17:40' };
+          });
+          let remainingResidual = Math.round((MONTHLY_WALK_TARGET - (nonFridays.length * 2.0 + fridays.length * 2.0)) * 10) / 10;
+          for (let i = 0; i < nonFridays.length && remainingResidual >= 0.499; i++) {
+            const ds = nonFridays[i];
+            const curDur = diffHours(yearMap[ds].walk.start, yearMap[ds].walk.end);
+            const add = 0.5;
+            const newDur = curDur + add;
+            const startMins = 15 * 60 + 40;
+            const endMins = startMins + Math.round(newDur * 60);
+            const endH = pad2(Math.floor(endMins / 60));
+            const endM = pad2(endMins % 60);
+            yearMap[ds].walk.end = `${endH}:${endM}`;
+            remainingResidual = Math.round((remainingResidual - add) * 10) / 10;
           }
         }
       }
@@ -2732,37 +2757,56 @@
         }
       }
 
-      // 3. Cuadrar Paseo a 39,0 h exactas
-      let remWalk = MONTHLY_WALK_TARGET;
-      for (let i = 0; i < workdays.length && remWalk > 0.001; i++) {
-        const ds = workdays[i];
-        if (remWalk >= 2.0) {
-          state.years[year][ds].walk = { enabled: true, start: '15:40', end: '17:40' };
-          remWalk = Math.round((remWalk - 2.0) * 1000) / 1000;
-        } else {
-          const durMins = Math.round(remWalk * 60);
+      // 3. Cuadrar Paseo a 39,0 h exactas: L-J ordinarios (2h).
+      // Si hay exceso de horas en el mes, LOS VIERNES reducen en tramos de MEDIA HORA (0,5h) o UNA HORA (1,0h).
+      const nonFridays = workdays.filter(ds => parseDateStr(ds).getDay() !== 5);
+      const fridays = workdays.filter(ds => parseDateStr(ds).getDay() === 5);
+
+      nonFridays.forEach(ds => {
+        state.years[year][ds].walk = { enabled: true, start: '15:40', end: '17:40' };
+      });
+
+      let remWalkForFridays = Math.round((MONTHLY_WALK_TARGET - (nonFridays.length * 2.0)) * 1000) / 1000;
+
+      if (fridays.length > 0 && remWalkForFridays <= fridays.length * 2.0 && remWalkForFridays >= 0) {
+        const fDurMap = {};
+        fridays.forEach(fDs => { fDurMap[fDs] = 2.0; });
+        let excessToDeduct = Math.round(((fridays.length * 2.0) - remWalkForFridays) * 10) / 10;
+
+        let idx = 0;
+        while (excessToDeduct >= 0.499 && idx < fridays.length * 4) {
+          const fDs = fridays[idx % fridays.length];
+          if (fDurMap[fDs] > 0.5) {
+            fDurMap[fDs] = Math.round((fDurMap[fDs] - 0.5) * 10) / 10;
+            excessToDeduct = Math.round((excessToDeduct - 0.5) * 10) / 10;
+          }
+          idx++;
+        }
+
+        fridays.forEach(fDs => {
+          const dur = fDurMap[fDs];
           const startMins = 15 * 60 + 40;
-          const endMins = startMins + durMins;
+          const endMins = startMins + Math.round(dur * 60);
           const endH = pad2(Math.floor(endMins / 60));
           const endM = pad2(endMins % 60);
-          state.years[year][ds].walk = { enabled: true, start: '15:40', end: `${endH}:${endM}` };
-          remWalk = 0;
-        }
-      }
-
-      // Si el mes tiene menos de 20 días laborables (ej. 19 por festivos), repartir el remanente
-      if (remWalk > 0.001) {
-        for (let i = 0; i < workdays.length && remWalk > 0.001; i++) {
-          const ds = workdays[i];
+          state.years[year][fDs].walk = { enabled: true, start: '15:40', end: `${endH}:${endM}` };
+        });
+      } else {
+        fridays.forEach(fDs => {
+          state.years[year][fDs].walk = { enabled: true, start: '15:40', end: '17:40' };
+        });
+        let remainingResidual = Math.round((MONTHLY_WALK_TARGET - (nonFridays.length * 2.0 + fridays.length * 2.0)) * 10) / 10;
+        for (let i = 0; i < nonFridays.length && remainingResidual >= 0.499; i++) {
+          const ds = nonFridays[i];
           const curDur = diffHours(state.years[year][ds].walk.start, state.years[year][ds].walk.end);
-          const add = Math.min(remWalk, 0.5);
+          const add = 0.5;
           const newDur = curDur + add;
           const startMins = 15 * 60 + 40;
           const endMins = startMins + Math.round(newDur * 60);
           const endH = pad2(Math.floor(endMins / 60));
           const endM = pad2(endMins % 60);
-          state.years[year][ds].walk.end = `${endH}:${endM}`;
-          remWalk = Math.round((remWalk - add) * 1000) / 1000;
+          state.years[year][ds].walk = { enabled: true, start: '15:40', end: `${endH}:${endM}` };
+          remainingResidual = Math.round((remainingResidual - add) * 10) / 10;
         }
       }
     }
