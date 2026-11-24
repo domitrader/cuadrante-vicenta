@@ -374,6 +374,15 @@
 
           <div class="flex items-center gap-1.5 shrink-0">
             <button
+              id="btnTopSync"
+              type="button"
+              onclick="openSyncModal()"
+              title="Sincronizar con el móvil de mamá"
+              class="px-2 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-black cursor-pointer flex items-center gap-1"
+            >
+              <span>📲</span><span>Sincronizar</span>
+            </button>
+            <button
               type="button"
               onclick="openCoordinationModal()"
               class="px-2 py-1 rounded-lg bg-amber-400 hover:bg-amber-300 text-slate-950 text-[11px] font-black cursor-pointer"
@@ -1042,6 +1051,114 @@
     </div>
   </div>
 
+  <!-- =====================================================================
+       MODAL DE SINCRONIZACIÓN CON EL TELÉFONO DE MAMÁ (WHATSAPP + NUBE)
+       ===================================================================== -->
+  <div id="syncModal" class="hidden fixed inset-0 z-50 bg-black/75 flex flex-col items-center justify-start sm:justify-center p-2.5 sm:p-4 overflow-y-auto no-print" style="padding-top: max(0.6rem, env(safe-area-inset-top)); padding-bottom: max(1rem, env(safe-area-inset-bottom)); min-height: 100dvh;">
+    <div class="bg-white rounded-3xl border-4 border-slate-950 shadow-2xl w-full max-w-lg overflow-hidden my-auto">
+      <div class="px-5 py-3.5 bg-slate-950 text-white flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="text-xl">📲</span>
+          <div>
+            <span class="text-[10px] font-black uppercase tracking-wider text-emerald-400">Sincronización Familiar</span>
+            <h2 class="text-base sm:text-lg font-black">Actualizar el Móvil de Mamá</h2>
+          </div>
+        </div>
+        <button type="button" onclick="closeSyncModal()" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-black text-sm cursor-pointer">✕</button>
+      </div>
+
+      <div class="p-4 sm:p-5 space-y-4 max-h-[82vh] overflow-y-auto">
+        <!-- Bloque Principal: WhatsApp Inmediato -->
+        <div class="rounded-2xl border-3 border-emerald-500 bg-emerald-50 p-4 space-y-3">
+          <div class="flex items-center gap-2">
+            <span class="text-2xl">💬</span>
+            <div>
+              <h3 class="text-sm sm:text-base font-black text-emerald-950">Enviar cambios a Mamá por WhatsApp</h3>
+              <p class="text-xs font-bold text-emerald-800 mt-0.5">
+                Envía un enlace directo a tu madre (o a quien la cuide). Al tocar el enlace una sola vez, su móvil se actualizará al instante con tus horarios.
+              </p>
+            </div>
+          </div>
+
+          <div id="syncSummaryBox" class="p-2.5 rounded-xl bg-white border border-emerald-300 text-xs font-bold text-slate-800">
+            Calculando cambios...
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+            <button
+              type="button"
+              onclick="shareSyncViaWhatsApp()"
+              class="w-full py-3 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs sm:text-sm shadow-md flex items-center justify-center gap-2 cursor-pointer"
+            >
+              <span>📲</span><span>Abrir WhatsApp y Enviar</span>
+            </button>
+            <button
+              type="button"
+              onclick="copySyncLinkToClipboard()"
+              class="w-full py-3 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-black text-xs sm:text-sm shadow-md flex items-center justify-center gap-2 cursor-pointer"
+            >
+              <span>📋</span><span>Copiar Enlace</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Bloque Secundario: Actualizar desde Servidor Oficial Web -->
+        <div class="rounded-2xl border-2 border-slate-300 bg-slate-50 p-3.5 space-y-2">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="text-xl">🌐</span>
+              <div>
+                <p class="text-xs font-black uppercase text-slate-700">Cuadrante Oficial de la Web</p>
+                <p class="text-xs font-extrabold text-slate-950">Descargar versión oficial (GitHub)</p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onclick="fetchOfficialServerSchedule(true)"
+              class="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-black cursor-pointer"
+            >
+              📥 Actualizar ahora
+            </button>
+          </div>
+          <p class="text-[11px] font-bold text-slate-600">
+            Descarga el archivo <code>schedule.json</code> con las 468h de paseo y 72h de limpieza oficiales.
+          </p>
+        </div>
+
+        <!-- Bloque Avanzado: Base de Datos en la Nube (Firebase / REST KV) -->
+        <div class="rounded-2xl border-2 border-sky-400 bg-sky-50 p-3.5 space-y-2.5">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="text-xl">☁️</span>
+              <div>
+                <p class="text-xs font-black uppercase text-sky-900">Base de Datos en Tiempo Real (Nube)</p>
+                <p id="cloudConnectionBadge" class="text-xs font-black text-sky-700">⚪ Sin base de datos conectada</p>
+              </div>
+            </div>
+          </div>
+          <p class="text-[11px] font-bold text-sky-950">
+            Conecta una base de datos gratuita de Firebase Realtime Database para sincronización automática invisible en segundo plano:
+          </p>
+          <div class="flex gap-2">
+            <input
+              id="cloudSyncUrlInput"
+              type="url"
+              placeholder="https://tu-proyecto.firebasedatabase.app/cuadrante.json"
+              class="flex-1 px-3 py-2 rounded-xl border border-sky-300 text-xs font-mono text-slate-900 focus:outline-none focus:border-sky-600"
+            />
+            <button
+              type="button"
+              onclick="saveCloudSyncUrl()"
+              class="px-3 py-2 rounded-xl bg-sky-600 hover:bg-sky-700 text-white text-xs font-black cursor-pointer"
+            >
+              Guardar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Aviso flotante (reemplaza alert()) -->
   <div
     id="toastBox"
@@ -1537,13 +1654,16 @@
 
     const state = loadState();
 
-    function persistState() {
+    function persistState(syncToCloud = true) {
       try {
         localStorage.setItem(STORAGE_KEY_STATE, JSON.stringify({
           selectedDateStr: state.selectedDateStr,
           viewMode: state.viewMode,
           years: state.years
         }));
+        if (syncToCloud && typeof pushCloudState === 'function') {
+          pushCloudState();
+        }
       } catch (e) {
         // Ignorar errores de cuota
       }
@@ -2943,15 +3063,291 @@
     }
 
     // =========================================================================
+    // MOTOR DE SINCRONIZACIÓN EN LA NUBE Y CON EL TELÉFONO DE MAMÁ
+    // =========================================================================
+    const STORAGE_KEY_CLOUD_SYNC_URL = 'cuadrante_mataro_cloud_sync_url';
+
+    function getStoredCloudSyncUrl() {
+      try {
+        return (localStorage.getItem(STORAGE_KEY_CLOUD_SYNC_URL) || '').trim();
+      } catch (e) {
+        return '';
+      }
+    }
+
+    function setStoredCloudSyncUrl(url) {
+      try {
+        if (url) {
+          localStorage.setItem(STORAGE_KEY_CLOUD_SYNC_URL, url.trim());
+        } else {
+          localStorage.removeItem(STORAGE_KEY_CLOUD_SYNC_URL);
+        }
+      } catch (e) {}
+    }
+
+    // Compara el estado actual con el horario oficial para extraer únicamente los días modificados (overrides)
+    function extractCustomOverrides() {
+      const diffs = {};
+      const default2026 = generateDefaultYearSchedule(2026);
+      const default2027 = generateDefaultYearSchedule(2027);
+      const defaults = { 2026: default2026, 2027: default2027 };
+
+      [2026, 2027].forEach(yr => {
+        const curYr = state.years[yr] || {};
+        const defYr = defaults[yr] || {};
+        Object.keys(curYr).forEach(ds => {
+          const curEntry = curYr[ds];
+          const defEntry = defYr[ds];
+          if (!defEntry || JSON.stringify(curEntry) !== JSON.stringify(defEntry)) {
+            diffs[ds] = curEntry;
+          }
+        });
+      });
+      return diffs;
+    }
+
+    // Genera el enlace de sincronización compacto con los cambios de Domingo
+    function getSyncLink() {
+      const diffs = extractCustomOverrides();
+      const baseUrl = window.location.origin + window.location.pathname;
+      const urlObj = new URL(baseUrl);
+
+      const jsonStr = JSON.stringify(diffs);
+      const b64 = btoa(unescape(encodeURIComponent(jsonStr)))
+        .replace(/\+/g, '-')
+        .replace(/\//g, '_')
+        .replace(/=+$/, '');
+
+      urlObj.searchParams.set('sync', b64);
+      const cloudUrl = getStoredCloudSyncUrl();
+      if (cloudUrl) {
+        urlObj.searchParams.set('syncUrl', cloudUrl);
+      }
+      return urlObj.toString();
+    }
+
+    function openSyncModal() {
+      const diffs = extractCustomOverrides();
+      const count = Object.keys(diffs).length;
+      const summaryBox = document.getElementById('syncSummaryBox');
+      if (summaryBox) {
+        if (count > 0) {
+          summaryBox.innerHTML = `
+            <div class="flex items-center justify-between">
+              <span class="font-black text-emerald-900">✏️ Cambios detectados:</span>
+              <span class="px-2 py-0.5 rounded-md bg-emerald-200 text-emerald-900 font-black">${count} días modificados</span>
+            </div>
+            <p class="text-[11px] text-slate-700 mt-1">
+              Tu madre recibirá estos <strong>${count} días personalizados</strong> de forma exacta al pulsar el enlace.
+            </p>
+          `;
+        } else {
+          summaryBox.innerHTML = `
+            <div class="flex items-center justify-between">
+              <span class="font-black text-emerald-900">⭐ Cuadrante oficial exacto</span>
+              <span class="px-2 py-0.5 rounded-md bg-emerald-200 text-emerald-900 font-black">468h paseo / 72h limpieza</span>
+            </div>
+            <p class="text-[11px] text-slate-700 mt-1">
+              Todos los meses están equilibrados según la regla oficial (reducciones en viernes en tramos de 0,5h/1,0h).
+            </p>
+          `;
+        }
+      }
+
+      const cloudUrl = getStoredCloudSyncUrl();
+      const input = document.getElementById('cloudSyncUrlInput');
+      const badge = document.getElementById('cloudConnectionBadge');
+      if (input) input.value = cloudUrl;
+      if (badge) {
+        if (cloudUrl) {
+          badge.textContent = '🟢 Conectada a: ' + cloudUrl.replace(/^https?:\/\//, '').slice(0, 32) + '...';
+          badge.className = 'text-xs font-black text-emerald-700';
+        } else {
+          badge.textContent = '⚪ Sin base de datos configurada';
+          badge.className = 'text-xs font-black text-slate-500';
+        }
+      }
+
+      document.getElementById('syncModal').classList.remove('hidden');
+    }
+
+    function closeSyncModal() {
+      document.getElementById('syncModal').classList.add('hidden');
+    }
+
+    function shareSyncViaWhatsApp() {
+      const link = getSyncLink();
+      const msg = `Hola mamá, te envío el cuadrante de limpieza y paseo actualizado por Domingo. Pulsa este enlace para que se actualice tu móvil:\n\n${link}`;
+      const waUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`;
+      window.open(waUrl, '_blank');
+      showToast('Abriendo WhatsApp para enviar la actualización a mamá...');
+    }
+
+    function copySyncLinkToClipboard() {
+      const link = getSyncLink();
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(link).then(() => {
+          showToast('📋 Enlace de sincronización copiado al portapapeles.');
+        }).catch(() => {
+          prompt('Copia este enlace de sincronización para enviarlo:', link);
+        });
+      } else {
+        prompt('Copia este enlace de sincronización para enviarlo:', link);
+      }
+    }
+
+    function saveCloudSyncUrl() {
+      const val = (document.getElementById('cloudSyncUrlInput').value || '').trim();
+      setStoredCloudSyncUrl(val);
+      showToast(val ? '☁️ Base de datos en la nube guardada.' : 'Base de datos desconectada.');
+      openSyncModal();
+      if (val) {
+        pushCloudState();
+      }
+    }
+
+    // Lee los parámetros de URL si se ha abierto desde un mensaje de WhatsApp
+    function initSyncFromUrl() {
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const syncData = params.get('sync');
+        const syncUrl = params.get('syncUrl');
+
+        if (syncUrl) {
+          setStoredCloudSyncUrl(syncUrl);
+        }
+
+        if (syncData) {
+          let b64Clean = syncData.replace(/-/g, '+').replace(/_/g, '/');
+          while (b64Clean.length % 4) b64Clean += '=';
+          const decodedStr = decodeURIComponent(escape(atob(b64Clean)));
+          const overrides = JSON.parse(decodedStr);
+          let count = 0;
+
+          Object.keys(overrides).forEach(ds => {
+            const yr = Number(ds.slice(0, 4));
+            if (!state.years[yr]) {
+              state.years[yr] = generateDefaultYearSchedule(yr);
+            }
+            state.years[yr][ds] = overrides[ds];
+            count++;
+          });
+
+          persistState(false);
+          renderAll();
+
+          // Limpiar la URL sin recargar para dejarla limpia
+          window.history.replaceState({}, document.title, window.location.pathname);
+
+          setTimeout(() => {
+            showToast(`⭐ ¡Cuadrante actualizado con éxito por Domingo! (${count} días sincronizados)`);
+            if ('speechSynthesis' in window) {
+              const u = new SpeechSynthesisUtterance('Buenos días señora Vicenta. Se ha actualizado el cuadrante de limpieza y paseo con los últimos cambios enviados por su hijo Domingo.');
+              u.lang = 'es-ES';
+              window.speechSynthesis.speak(u);
+            }
+          }, 800);
+        }
+      } catch (err) {
+        console.warn('Error al procesar sincronización de URL:', err);
+      }
+    }
+
+    // Descarga el cuadrante oficial schedule.json desde el servidor GitHub Pages
+    async function fetchOfficialServerSchedule(userTriggered = false) {
+      try {
+        const res = await fetch(`./schedule.json?t=${Date.now()}`);
+        if (!res.ok) {
+          if (userTriggered) showToast('No se pudo descargar el archivo oficial del servidor.');
+          return false;
+        }
+        const data = await res.json();
+        if (data && data.years && data.years[2026] && data.years[2027]) {
+          const currentOverrides = extractCustomOverrides();
+          if (userTriggered || Object.keys(currentOverrides).length === 0) {
+            state.years[2026] = data.years[2026];
+            state.years[2027] = data.years[2027];
+            persistState(false);
+            renderAll();
+            if (userTriggered) {
+              showToast('📥 Cuadrante oficial descargado y aplicado con éxito.');
+            }
+            return true;
+          }
+        }
+      } catch (e) {
+        if (userTriggered) showToast('Error al conectar con el servidor oficial.');
+      }
+      return false;
+    }
+
+    // Sincronización en la nube (Firebase Realtime Database o REST KV)
+    async function pushCloudState() {
+      const cloudUrl = getStoredCloudSyncUrl();
+      if (!cloudUrl) return;
+      try {
+        const payload = {
+          updatedAt: new Date().toISOString(),
+          author: 'Domingo Martínez Serrano',
+          years: state.years
+        };
+        const res = await fetch(cloudUrl, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        if (res.ok) {
+          showToast('☁️ Cambios sincronizados en la nube.');
+        }
+      } catch (e) {
+        console.warn('No se pudo subir a la nube:', e);
+      }
+    }
+
+    async function pullCloudState() {
+      const cloudUrl = getStoredCloudSyncUrl();
+      if (!cloudUrl) return false;
+      try {
+        const res = await fetch(`${cloudUrl}?t=${Date.now()}`);
+        if (!res.ok) return false;
+        const data = await res.json();
+        if (data && data.years && data.years[2026] && data.years[2027]) {
+          state.years[2026] = data.years[2026];
+          state.years[2027] = data.years[2027];
+          persistState(false);
+          renderAll();
+          showToast('☁️ Cuadrante actualizado desde la nube.');
+          return true;
+        }
+      } catch (e) {
+        console.warn('No se pudo descargar de la nube:', e);
+      }
+      return false;
+    }
+
+    async function autoSyncOnStartup() {
+      const cloudUrl = getStoredCloudSyncUrl();
+      if (cloudUrl) {
+        const cloudOk = await pullCloudState();
+        if (cloudOk) return;
+      }
+      await fetchOfficialServerSchedule(false);
+    }
+
+    // =========================================================================
     // INICIALIZACIÓN GLOBAL DE LA APLICACIÓN
     // =========================================================================
-    window.addEventListener('DOMContentLoaded', () => {
+    window.addEventListener('DOMContentLoaded', async () => {
       initVicentaLogo();
       syncWheelsToState(false);
       renderAll();
       initFullScreenDayAlertOnOpen();
       fetchMataroWeather();
       setInterval(updateWeatherUI, 30000);
+
+      // Sincronización automática de inicio (por WhatsApp URL, por servidor schedule.json o por Nube)
+      initSyncFromUrl();
+      await autoSyncOnStartup();
     });
   </script>
 </body>
